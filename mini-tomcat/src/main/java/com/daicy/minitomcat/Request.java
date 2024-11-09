@@ -2,18 +2,18 @@ package com.daicy.minitomcat;
 
 public class Request {
     private String method;
-    private String path;
+    private String uri;
 
-    public Request(String method, String path) {
+    public Request(String method, String uri) {
         this.method = method;
-        this.path = path;
+        this.uri = uri;
     }
 
     public String getMethod() {
         return method;
     }
 
-    public String getPath() {
-        return path;
+    public String getUri() {
+        return uri;
     }
 }

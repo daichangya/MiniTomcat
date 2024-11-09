@@ -6,6 +6,9 @@ import java.net.Socket;
 public class HttpProcessor {
     private Socket socket;
 
+    private StaticResourceProcessor staticProcessor = new StaticResourceProcessor();
+
+
     public HttpProcessor(Socket socket) {
         this.socket = socket;
     }
@@ -17,11 +20,17 @@ public class HttpProcessor {
             // 解析请求
             Request request = parseRequest(inputStream);
 
-
-
             // 构建响应
             Response response = new Response(outputStream);
-            response.sendStaticResource(request);
+            if(null == request){
+                return;
+            }
+            String uri = request.getUri();
+            if (uri.endsWith(".html") || uri.endsWith(".css") || uri.endsWith(".js")) {
+                staticProcessor.process(request, response);
+            } else {
+                staticProcessor.process(request, response);
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
