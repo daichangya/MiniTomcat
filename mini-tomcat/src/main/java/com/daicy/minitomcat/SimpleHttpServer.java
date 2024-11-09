@@ -52,7 +52,11 @@ public class SimpleHttpServer {
             }
 
             // 查找请求的静态文件
-            URL url = Resources.getResource(WEB_ROOT+ path);
+            URL url = SimpleHttpServer.class.getClassLoader().getResource(WEB_ROOT+ path);
+            if(null == url){
+                sendResponse(outputStream, 404, "Not Found", "The requested resource was not found.");
+                return;
+            }
             File file = new File(url.getPath());
             if (file.exists() && !file.isDirectory()) {
                 sendFileResponse(outputStream, file);
