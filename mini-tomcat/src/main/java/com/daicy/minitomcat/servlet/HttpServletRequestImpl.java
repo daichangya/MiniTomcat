@@ -1,4 +1,4 @@
-package com.daicy.minitomcat;
+package com.daicy.minitomcat.servlet;
 
 import javax.servlet.*;
 import javax.servlet.http.*;

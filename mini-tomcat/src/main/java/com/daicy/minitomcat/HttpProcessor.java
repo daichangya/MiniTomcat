@@ -1,5 +1,8 @@
 package com.daicy.minitomcat;
 
+import com.daicy.minitomcat.servlet.HttpServletRequestImpl;
+import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
+
 import java.io.*;
 import java.net.Socket;
 

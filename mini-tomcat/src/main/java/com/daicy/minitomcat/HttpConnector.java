@@ -5,7 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class HttpConnector implements Runnable {
-    private static final int PORT = 8080;
+    private static final int PORT = 8081;
 
     public void start() {
         Thread thread = new Thread(this);
