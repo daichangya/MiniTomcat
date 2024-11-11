@@ -20,6 +20,12 @@ public class ServletConfigImpl implements ServletConfig {
     }
 
     @Override
+    public String getInitParameter(String name) {
+        return initParameters.get(name);
+    }
+
+
+    @Override
     public String getServletName() {
         return servletName;
     }
@@ -27,11 +33,6 @@ public class ServletConfigImpl implements ServletConfig {
     @Override
     public ServletContext getServletContext() {
         return servletContext;
-    }
-
-    @Override
-    public String getInitParameter(String name) {
-        return initParameters.get(name);
     }
 
     @Override
