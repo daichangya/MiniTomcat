@@ -3,7 +3,7 @@ package com.daicy.minitomcat;
 import java.io.*;
 import java.net.URL;
 
-import static com.daicy.minitomcat.HttpProcessor.sendResponse;
+import static com.daicy.minitomcat.HttpProcessor.send404Response;
 import static com.daicy.minitomcat.HttpServer.WEB_ROOT;
 
 public class StaticResourceProcessor {
@@ -16,14 +16,14 @@ public class StaticResourceProcessor {
             String path = request.getRequestURI();
             URL url = HttpServer.class.getClassLoader().getResource(WEB_ROOT+ path);
             if(null == url){
-                sendResponse(writer, 404, "Not Found", "The requested resource was not found.");
+                send404Response(writer);
                 return;
             }
             File file = new File(url.getPath());
             if (file.exists() && !file.isDirectory()) {
                 sendFileResponse(outputStream, file);
             } else {
-                sendResponse(writer, 404, "Not Found", "The requested resource was not found.");
+                send404Response(writer);
             }
         }catch (IOException e){
             e.printStackTrace();

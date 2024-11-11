@@ -6,6 +6,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import static com.daicy.minitomcat.HttpProcessor.send404Response;
+
 public class ServletProcessor {
 
     public void process(HttpServletRequest request, HttpServletResponse response) {
@@ -13,11 +15,11 @@ public class ServletProcessor {
         try {
             PrintWriter writer = response.getWriter();
             if ("HelloServlet".equals(servletName)) {
-                writeResponseHeadersOrBody(writer, 200, "OK",null);
+                writeResponseHeaders(writer, 200, "OK");
                 HelloServlet servlet = new HelloServlet();
                 servlet.service(request, response);
             } else {
-                writeResponseHeadersOrBody(writer, 404, "Not Found", "The requested resource was not found.");
+                send404Response(writer);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -31,14 +33,10 @@ public class ServletProcessor {
         return null;
     }
 
-    private void writeResponseHeadersOrBody(PrintWriter writer, int statusCode, String statusMessage,
-                                            String html) {
+    private void writeResponseHeaders(PrintWriter writer, int statusCode, String statusMessage) {
         writer.println("HTTP/1.1 " + statusCode + " " + statusMessage);
         writer.println("Content-Type: text/html; charset=UTF-8");
         writer.println();
-        if(html != null){
-            writer.println(html);
-        }
     }
 
 }

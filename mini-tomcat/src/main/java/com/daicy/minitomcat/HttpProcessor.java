@@ -59,9 +59,13 @@ public class HttpProcessor {
         return new HttpServletRequestImpl(method, path);
     }
 
+    static void send404Response(PrintWriter writer) {
+        sendResponse(writer, 404, "Not Found", "The requested resource was not found.");
+    }
+
 
     // 发送普通文本响应
-    static void sendResponse(PrintWriter writer, int statusCode, String statusText, String message)  {
+    private static void sendResponse(PrintWriter writer, int statusCode, String statusText, String message)  {
         String html = "<html><body><h1>" + statusCode + " " + statusText + "</h1><p>" + message + "</p></body></html>";
         writer.println("HTTP/1.1 " + statusCode + " " + statusText);
         writer.println("Content-Type: text/html; charset=UTF-8");
