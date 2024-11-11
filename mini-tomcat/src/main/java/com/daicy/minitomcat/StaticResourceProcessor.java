@@ -3,38 +3,31 @@ package com.daicy.minitomcat;
 import java.io.*;
 import java.net.URL;
 
+import static com.daicy.minitomcat.HttpProcessor.sendResponse;
 import static com.daicy.minitomcat.HttpServer.WEB_ROOT;
 
 public class StaticResourceProcessor {
-    public void process(Request request, Response response) {
+    public void process(HttpServletRequestImpl request, HttpServletResponseImpl response) {
         try {
 
             OutputStream outputStream = response.getOutputStream();
+            PrintWriter writer = response.getWriter();
             // 查找请求的静态文件
-            String path = request.getUri();
+            String path = request.getRequestURI();
             URL url = HttpServer.class.getClassLoader().getResource(WEB_ROOT+ path);
             if(null == url){
-                sendResponse(outputStream, 404, "Not Found", "The requested resource was not found.");
+                sendResponse(writer, 404, "Not Found", "The requested resource was not found.");
                 return;
             }
             File file = new File(url.getPath());
             if (file.exists() && !file.isDirectory()) {
                 sendFileResponse(outputStream, file);
             } else {
-                sendResponse(outputStream, 404, "Not Found", "The requested resource was not found.");
+                sendResponse(writer, 404, "Not Found", "The requested resource was not found.");
             }
         }catch (IOException e){
             e.printStackTrace();
         }
-    }
-
-    // 发送普通文本响应
-    private static void sendResponse(OutputStream outputStream, int statusCode, String statusText, String message) throws IOException {
-        PrintWriter writer = new PrintWriter(outputStream, true);
-        writer.println("HTTP/1.1 " + statusCode + " " + statusText);
-        writer.println("Content-Type: text/html; charset=UTF-8");
-        writer.println();
-        writer.println("<html><body><h1>" + statusCode + " " + statusText + "</h1><p>" + message + "</p></body></html>");
     }
 
     // 发送文件响应

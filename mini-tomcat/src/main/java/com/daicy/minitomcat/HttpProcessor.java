@@ -6,8 +6,6 @@ import java.net.Socket;
 public class HttpProcessor {
     private Socket socket;
 
-    private StaticResourceProcessor staticProcessor = new StaticResourceProcessor();
-
 
     public HttpProcessor(Socket socket) {
         this.socket = socket;
@@ -18,18 +16,20 @@ public class HttpProcessor {
              OutputStream outputStream = socket.getOutputStream()) {
 
             // 解析请求
-            Request request = parseRequest(inputStream);
+            HttpServletRequestImpl request = parseRequest(inputStream);
 
             // 构建响应
-            Response response = new Response(outputStream);
+            HttpServletResponseImpl response = new HttpServletResponseImpl(outputStream);
             if(null == request){
                 return;
             }
-            String uri = request.getUri();
+            String uri = request.getRequestURI();
             if (uri.endsWith(".html") || uri.endsWith(".css") || uri.endsWith(".js")) {
+                StaticResourceProcessor staticProcessor = new StaticResourceProcessor();
                 staticProcessor.process(request, response);
             } else {
-                staticProcessor.process(request, response);
+                ServletProcessor processor = new ServletProcessor();
+                processor.process(request, response);
             }
 
         } catch (IOException e) {
@@ -43,7 +43,7 @@ public class HttpProcessor {
         }
     }
 
-    private Request parseRequest(InputStream inputStream) throws IOException {
+    private HttpServletRequestImpl parseRequest(InputStream inputStream) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
         String requestLine = reader.readLine();
@@ -56,7 +56,18 @@ public class HttpProcessor {
         String method = parts[0];
         String path = parts[1];
 
-        return new Request(method, path);
+        return new HttpServletRequestImpl(method, path);
+    }
+
+
+    // 发送普通文本响应
+    static void sendResponse(PrintWriter writer, int statusCode, String statusText, String message)  {
+        String html = "<html><body><h1>" + statusCode + " " + statusText + "</h1><p>" + message + "</p></body></html>";
+        writer.println("HTTP/1.1 " + statusCode + " " + statusText);
+        writer.println("Content-Type: text/html; charset=UTF-8");
+        writer.println("Content-Length: " + html.length());
+        writer.println();
+        writer.println(html);
     }
 
 }
