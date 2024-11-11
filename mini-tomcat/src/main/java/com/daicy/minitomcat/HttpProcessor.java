@@ -6,6 +6,9 @@ import java.net.Socket;
 public class HttpProcessor {
     private Socket socket;
 
+    private final static  ServletProcessor processor = new ServletProcessor();
+
+    private final static  StaticResourceProcessor staticProcessor = new StaticResourceProcessor();
 
     public HttpProcessor(Socket socket) {
         this.socket = socket;
@@ -25,10 +28,8 @@ public class HttpProcessor {
             }
             String uri = request.getRequestURI();
             if (uri.endsWith(".html") || uri.endsWith(".css") || uri.endsWith(".js")) {
-                StaticResourceProcessor staticProcessor = new StaticResourceProcessor();
                 staticProcessor.process(request, response);
             } else {
-                ServletProcessor processor = new ServletProcessor();
                 processor.process(request, response);
             }
 
