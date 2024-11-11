@@ -27,6 +27,7 @@ public class ServletProcessor {
                     servlet = servletMappings.get(servletName);
                 }else {
                     servlet = new HelloServlet();
+                    servlet.init(null);
                     servletMappings.put(servletName, servlet);
                 }
                 servlet.service(request, response);
