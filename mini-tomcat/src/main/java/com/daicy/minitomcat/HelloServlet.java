@@ -1,17 +1,38 @@
 package com.daicy.minitomcat;
 
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.*;
+
 import java.io.IOException;
 
-public class HelloServlet {
+public class HelloServlet implements Servlet {
 
-    public void service(HttpServletRequest request, HttpServletResponse response) {
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        System.out.println("HelloServlet initialized.");
+    }
+
+    @Override
+    public ServletConfig getServletConfig() {
+        return null;
+    }
+
+    @Override
+    public void service(ServletRequest req, ServletResponse res)  {
         try {
-            response.getWriter().println("<html><body><h1>Hello from HelloServlet!</h1></body></html>");
+            res.getWriter().println("<html><body><h1>Hello from HelloServlet!</h1></body></html>");
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String getServletInfo() {
+        return "";
+    }
+
+    @Override
+    public void destroy() {
+        System.out.println("HelloServlet destroyed.");
     }
 }

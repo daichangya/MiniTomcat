@@ -1,14 +1,20 @@
 package com.daicy.minitomcat;
 
 
+import javax.servlet.Servlet;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.daicy.minitomcat.HttpProcessor.send404Response;
 
 public class ServletProcessor {
+
+    private Map<String, Servlet> servletMappings = new HashMap<>();
 
     public void process(HttpServletRequest request, HttpServletResponse response) {
         String servletName = getServletName(request.getRequestURI());
@@ -16,13 +22,21 @@ public class ServletProcessor {
             PrintWriter writer = response.getWriter();
             if ("HelloServlet".equals(servletName)) {
                 writeResponseHeaders(writer, 200, "OK");
-                HelloServlet servlet = new HelloServlet();
+                Servlet servlet;
+                if (servletMappings.containsKey(servletName)){
+                    servlet = servletMappings.get(servletName);
+                }else {
+                    servlet = new HelloServlet();
+                    servletMappings.put(servletName, servlet);
+                }
                 servlet.service(request, response);
             } else {
                 send404Response(writer);
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (ServletException e) {
+            throw new RuntimeException(e);
         }
     }
 
