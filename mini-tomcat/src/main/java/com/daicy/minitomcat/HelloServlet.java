@@ -7,20 +7,24 @@ import java.io.IOException;
 
 public class HelloServlet implements Servlet {
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        System.out.println("HelloServlet initialized.");
-    }
+    private ServletConfig servletConfig;
 
     @Override
     public ServletConfig getServletConfig() {
-        return null;
+        return servletConfig;
     }
 
     @Override
-    public void service(ServletRequest req, ServletResponse res)  {
+    public void init(ServletConfig servletConfig) {
+        System.out.println("HelloServlet initialized.");
+        this.servletConfig = servletConfig;
+    }
+
+    @Override
+    public void service(ServletRequest request, ServletResponse response) {
         try {
-            res.getWriter().println("<html><body><h1>Hello from HelloServlet!</h1></body></html>");
+            String greeting = servletConfig.getInitParameter("greeting");
+            response.getWriter().println("<html><body><h1>" + greeting + "</h1></body></html>");
         } catch (IOException e) {
             e.printStackTrace();
         }

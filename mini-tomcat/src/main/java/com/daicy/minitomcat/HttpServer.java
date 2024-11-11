@@ -13,7 +13,7 @@ import java.util.Enumeration;
 public class HttpServer {
     static final String WEB_ROOT = "webroot"; // 静态文件根目录
 
-    static WebXmlServletContainer parser;
+    public static WebXmlServletContainer parser;
 
     public static void main(String[] args) {
 
