@@ -15,11 +15,11 @@ public class ServletProcessor {
         try {
             PrintWriter writer = response.getWriter();
             if ("HelloServlet".equals(servletName)) {
-                writeResponseHeaders(writer, 200, "OK", "text/html; charset=UTF-8");
+                writeResponseHeaders(writer, 200, "OK",null);
                 HelloServlet servlet = new HelloServlet();
                 servlet.service(request, response);
             } else {
-                sendResponse(writer, 404, "Not Found", "The requested resource was not found.");
+                writeResponseHeaders(writer, 404, "Not Found", "The requested resource was not found.");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -33,10 +33,14 @@ public class ServletProcessor {
         return null;
     }
 
-    private void writeResponseHeaders(PrintWriter writer, int statusCode, String statusMessage, String contentType) {
+    private void writeResponseHeaders(PrintWriter writer, int statusCode, String statusMessage,
+                                      String html) {
         writer.println("HTTP/1.1 " + statusCode + " " + statusMessage);
-        writer.println("Content-Type: " + contentType);
+        writer.println("Content-Type: text/html; charset=UTF-8");
         writer.println();
+        if(html != null){
+            writer.println(html);
+        }
     }
 
 }
