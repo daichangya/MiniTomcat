@@ -19,14 +19,14 @@ public class StaticResourceProcessor {
             String path = request.getRequestURI();
             URL url = HttpServer.class.getClassLoader().getResource(WEB_ROOT+ path);
             if(null == url){
-                send404Response(writer);
+                send404Response(outputStream);
                 return;
             }
             File file = new File(url.getPath());
             if (file.exists() && !file.isDirectory()) {
                 sendFileResponse(outputStream, file);
             } else {
-                send404Response(writer);
+                send404Response(outputStream);
             }
         }catch (IOException e){
             e.printStackTrace();

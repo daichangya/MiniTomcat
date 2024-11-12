@@ -1,9 +1,12 @@
 package com.daicy.minitomcat;
 
 
+import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
+
 import javax.servlet.*;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 public class HelloServlet implements Servlet {
 
@@ -25,6 +28,15 @@ public class HelloServlet implements Servlet {
         try {
             String greeting = servletConfig.getInitParameter("greeting");
             response.getWriter().println("<html><body><h1>" + greeting + "</h1></body></html>");
+            response.getWriter().flush();
+
+//            HttpServletResponseImpl responseImpl = (HttpServletResponseImpl) response;
+//            String greeting = servletConfig.getInitParameter("greeting");
+//            String html = responseImpl.getReponseString();
+//            html = html + "<html><body><h1>" + greeting + "</h1></body></html>";
+//            PrintWriter writer = response.getWriter();
+//            writer.print(html);
+//            writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

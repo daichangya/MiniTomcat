@@ -1,5 +1,7 @@
 package com.daicy.minitomcat.servlet;
 
+import com.daicy.minitomcat.SessionManager;
+
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.BufferedReader;
@@ -8,48 +10,117 @@ import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.*;
 
-public class HttpServletRequestImpl implements HttpServletRequest {
+public class HttpServletRequestImpl  implements HttpServletRequest {
     private String method;
-    private String requestUri;
+    private String requestURI;
+    private String queryString;
+    private Map<String, String> headers = new HashMap<>();
+    private List<Cookie> cookies = new ArrayList<>();
+    private HttpSession session;
+    private String sessionId;
+    private boolean sessionIdFromCookie;
+    private boolean sessionIdChanged = false;
+    private Map<String, String[]> parameters = new HashMap<>();
 
-    public HttpServletRequestImpl(String method, String requestURI) {
+    private String characterEncoding = "UTF-8";
+
+    public HttpServletRequestImpl(String method, String requestURI, String queryString, Map<String, String> headers) {
         this.method = method;
-        this.requestUri = requestURI;
+        this.requestURI = requestURI;
+        this.queryString = queryString;
+        this.headers = headers;
+
+        // 解析 queryString 并填充参数映射
+        if (queryString != null) {
+            String[] pairs = queryString.split("&");
+            for (String pair : pairs) {
+                String[] keyValue = pair.split("=");
+                if (keyValue.length == 2) {
+                    parameters.put(keyValue[0], new String[]{keyValue[1]});
+                }
+            }
+        }
+
+        // 解析 cookies
+        String cookieHeader = headers.get("Cookie");
+        if (cookieHeader != null) {
+            String[] cookiePairs = cookieHeader.split("; ");
+            for (String cookiePair : cookiePairs) {
+                String[] keyValue = cookiePair.split("=");
+                if (keyValue.length == 2) {
+                    Cookie cookie = new Cookie(keyValue[0], keyValue[1]);
+                    cookies.add(cookie);
+                    // 检查是否有 session ID
+                    if ("JSESSIONID".equals(cookie.getName())) {
+                        session = SessionManager.getOrCreateSession(cookie.getValue());
+                    }
+                }
+            }
+        }
+        // 如果没有找到 JSESSIONID，则创建一个新的 session
+        if (session == null) {
+            session = SessionManager.createSession();
+            cookies.add(new Cookie("JSESSIONID", session.getId()));
+        }
+    }
+
+
+    @Override
+    public HttpSession getSession() {
+        return session;
     }
 
     @Override
-    public String getAuthType() {
-        return "";
+    public HttpSession getSession(boolean create) {
+        if (session == null && create) {
+            session = SessionManager.createSession();
+            cookies.add(new Cookie("JSESSIONID", session.getId()));
+        }
+        return session;
     }
 
     @Override
-    public Cookie[] getCookies() {
-        return new Cookie[0];
+    public String getRequestedSessionId() {
+        return this.sessionId;
     }
 
     @Override
-    public long getDateHeader(String name) {
-        return 0;
+    public boolean isRequestedSessionIdValid() {
+        if (sessionId == null) return false;
+        HttpSession existingSession = SessionManager.getSession(sessionId);
+        return existingSession != null && !((CustomHttpSession) existingSession).isExpired();
     }
 
     @Override
-    public String getHeader(String name) {
-        return "";
+    public boolean isRequestedSessionIdFromCookie() {
+        return this.sessionIdFromCookie;
     }
 
     @Override
-    public Enumeration<String> getHeaders(String name) {
-        return null;
+    public boolean isRequestedSessionIdFromURL() {
+        return !this.sessionIdFromCookie;
     }
 
     @Override
-    public Enumeration<String> getHeaderNames() {
-        return null;
+    public String changeSessionId() {
+        if (session == null) {
+            getSession(true);
+        }
+        String newSessionId = UUID.randomUUID().toString();
+
+        // 从存储中移除旧的 sessionId
+        if (sessionId != null) {
+            SessionManager.invalidateSession(sessionId);
+        }
+
+        // 更新新的 sessionId 并保存会话到存储
+        sessionId = newSessionId;
+        sessionIdChanged = true;
+        return sessionId;
     }
 
-    @Override
-    public int getIntHeader(String name) {
-        return 0;
+    public boolean isSessionIdChanged() {
+        return sessionIdChanged;
     }
 
     @Override
@@ -73,33 +144,8 @@ public class HttpServletRequestImpl implements HttpServletRequest {
     }
 
     @Override
-    public String getQueryString() {
-        return "";
-    }
-
-    @Override
-    public String getRemoteUser() {
-        return "";
-    }
-
-    @Override
-    public boolean isUserInRole(String role) {
-        return false;
-    }
-
-    @Override
-    public Principal getUserPrincipal() {
-        return null;
-    }
-
-    @Override
-    public String getRequestedSessionId() {
-        return "";
-    }
-
-    @Override
     public String getRequestURI() {
-        return requestUri;
+        return requestURI;
     }
 
     @Override
@@ -113,68 +159,53 @@ public class HttpServletRequestImpl implements HttpServletRequest {
     }
 
     @Override
-    public HttpSession getSession(boolean create) {
-        return null;
+    public String getQueryString() {
+        return queryString;
     }
 
     @Override
-    public HttpSession getSession() {
-        return null;
-    }
-
-    @Override
-    public String changeSessionId() {
+    public String getRemoteUser() {
         return "";
     }
 
     @Override
-    public boolean isRequestedSessionIdValid() {
+    public boolean isUserInRole(String role) {
         return false;
     }
 
     @Override
-    public boolean isRequestedSessionIdFromCookie() {
-        return false;
+    public String getAuthType() {
+        return "";
     }
 
     @Override
-    public boolean isRequestedSessionIdFromURL() {
-        return false;
+    public Cookie[] getCookies() {
+        return cookies.toArray(new Cookie[0]);
     }
 
     @Override
-    public boolean isRequestedSessionIdFromUrl() {
-        return false;
+    public long getDateHeader(String name) {
+        return 0;
     }
 
     @Override
-    public boolean authenticate(HttpServletResponse response) throws IOException, ServletException {
-        return false;
+    public String getHeader(String name) {
+        return headers.get(name);
     }
 
     @Override
-    public void login(String username, String password) throws ServletException {
-
-    }
-
-    @Override
-    public void logout() throws ServletException {
-
-    }
-
-    @Override
-    public Collection<Part> getParts() throws IOException, ServletException {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Part getPart(String name) throws IOException, ServletException {
+    public Enumeration<String> getHeaders(String name) {
         return null;
     }
 
     @Override
-    public <T extends HttpUpgradeHandler> T upgrade(Class<T> handlerClass) throws IOException, ServletException {
-        return null;
+    public Enumeration<String> getHeaderNames() {
+        return Collections.enumeration(headers.keySet());
+    }
+
+    @Override
+    public int getIntHeader(String name) {
+        return 0;
     }
 
     @Override
@@ -189,12 +220,12 @@ public class HttpServletRequestImpl implements HttpServletRequest {
 
     @Override
     public String getCharacterEncoding() {
-        return "";
+        return characterEncoding;
     }
 
     @Override
     public void setCharacterEncoding(String env) throws UnsupportedEncodingException {
-
+        characterEncoding = env;
     }
 
     @Override
@@ -219,7 +250,8 @@ public class HttpServletRequestImpl implements HttpServletRequest {
 
     @Override
     public String getParameter(String name) {
-        return "";
+        String[] values = parameters.get(name);
+        return values != null && values.length > 0 ? values[0] : null;
     }
 
     @Override
@@ -234,29 +266,17 @@ public class HttpServletRequestImpl implements HttpServletRequest {
 
     @Override
     public Map<String, String[]> getParameterMap() {
-        return Collections.emptyMap();
+        return parameters;
     }
 
     @Override
-    public String getProtocol() {
-        return "";
-    }
-
+    public String getProtocol() { return "HTTP/1.1"; }
     @Override
-    public String getScheme() {
-        return "";
-    }
-
+    public String getScheme() { return "http"; }
     @Override
-    public String getServerName() {
-        return "";
-    }
-
+    public String getServerName() { return "localhost"; }
     @Override
-    public int getServerPort() {
-        return 0;
-    }
-
+    public int getServerPort() { return 80; }
     @Override
     public BufferedReader getReader() throws IOException {
         return null;
@@ -361,4 +381,43 @@ public class HttpServletRequestImpl implements HttpServletRequest {
     public DispatcherType getDispatcherType() {
         return null;
     }
+
+    @Override
+    public boolean isRequestedSessionIdFromUrl() {
+        return false;
+    }
+
+    @Override
+    public boolean authenticate(HttpServletResponse response) throws IOException, ServletException {
+        return false;
+    }
+
+    @Override
+    public void login(String username, String password) throws ServletException {
+
+    }
+
+    @Override
+    public void logout() throws ServletException {
+
+    }
+
+    @Override
+    public Collection<Part> getParts() throws IOException, ServletException {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Part getPart(String name) throws IOException, ServletException {
+        return null;
+    }
+
+    @Override
+    public <T extends HttpUpgradeHandler> T upgrade(Class<T> handlerClass) throws IOException, ServletException {
+        return null;
+    }
+
+    @Override
+    public Principal getUserPrincipal() { return null; }
+
 }

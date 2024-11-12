@@ -12,4 +12,14 @@
         <servlet-name>HelloServlet</servlet-name>
         <url-pattern>/hello</url-pattern>
     </servlet-mapping>
+
+    <servlet>
+        <servlet-name>CounterServlet</servlet-name>
+        <servlet-class>com.daicy.minitomcat.CounterServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>CounterServlet</servlet-name>
+        <url-pattern>/counter</url-pattern>
+    </servlet-mapping>
 </web-app>
