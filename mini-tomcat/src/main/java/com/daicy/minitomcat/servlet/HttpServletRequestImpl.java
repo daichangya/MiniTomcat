@@ -67,6 +67,35 @@ public class HttpServletRequestImpl  implements HttpServletRequest {
         }
     }
 
+    @Override
+    public boolean isAsyncStarted() {
+        return asyncStarted;
+    }
+
+    @Override
+    public AsyncContext getAsyncContext() {
+        if (!asyncStarted) {
+            throw new IllegalStateException("Async not started");
+        }
+        return asyncContext;
+    }
+
+
+    @Override
+    public AsyncContext startAsync(ServletRequest servletRequest, ServletResponse servletResponse) throws IllegalStateException {
+        if (asyncStarted) {
+            throw new IllegalStateException("Async already started");
+        }
+        asyncStarted = true;
+        asyncContext = new AsyncContextImpl(this, servletResponse);
+        return asyncContext;
+    }
+
+    @Override
+    public boolean isAsyncSupported() {
+        return asyncStarted;
+    }
+
 
     @Override
     public HttpSession getSession() {
@@ -360,34 +389,6 @@ public class HttpServletRequestImpl  implements HttpServletRequest {
        return null;
     }
 
-    @Override
-    public boolean isAsyncStarted() {
-        return asyncStarted;
-    }
-
-    @Override
-    public AsyncContext getAsyncContext() {
-        if (!asyncStarted) {
-            throw new IllegalStateException("Async not started");
-        }
-        return asyncContext;
-    }
-
-
-    @Override
-    public AsyncContext startAsync(ServletRequest servletRequest, ServletResponse servletResponse) throws IllegalStateException {
-        if (asyncStarted) {
-            throw new IllegalStateException("Async already started");
-        }
-        asyncStarted = true;
-        asyncContext = new AsyncContextImpl(this, servletResponse);
-        return asyncContext;
-    }
-
-    @Override
-    public boolean isAsyncSupported() {
-        return asyncStarted;
-    }
 
     @Override
     public DispatcherType getDispatcherType() {

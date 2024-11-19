@@ -1,6 +1,7 @@
 package com.daicy.minitomcat;
 
 
+import com.daicy.minitomcat.servlet.FilterChainImpl;
 import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
 
 import javax.servlet.Servlet;
@@ -36,6 +37,8 @@ public class ServletProcessor {
             }
             try {
                 headerHandler.applyHeaders(request, response, request.getSession().getId());
+                FilterChainImpl chain = new FilterChainImpl(HttpServer.filterManager.getFilters());
+                chain.doFilter(request, response);
                 servlet.service(request, response);
             } catch (Exception e) {
                 // 捕获异常并设置错误状态码
