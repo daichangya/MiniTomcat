@@ -9,7 +9,7 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpProcessor {
+public class HttpProcessor implements Runnable{
     private Socket socket;
 
     private final static  ServletProcessor servletProcessor = new ServletProcessor();
@@ -18,6 +18,12 @@ public class HttpProcessor {
 
     public HttpProcessor(Socket socket) {
         this.socket = socket;
+    }
+
+    @Override
+    public void run() {
+        // 处理请求并返回响应
+        process();
     }
 
     public void process() {

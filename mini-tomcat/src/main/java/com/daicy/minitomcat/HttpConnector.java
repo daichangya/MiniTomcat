@@ -5,7 +5,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class HttpConnector implements Runnable {
-    private static final int PORT = 8081;
+    private static final int PORT = 8080;
+
+    private static ThreadPool threadPool = new ThreadPool(10);  // 创建一个线程池，最多支持 10 个并发请求
 
     public void start() {
         Thread thread = new Thread(this);
@@ -23,7 +25,7 @@ public class HttpConnector implements Runnable {
 
                 // 将连接交给 HttpProcessor 处理
                 HttpProcessor processor = new HttpProcessor(clientSocket);
-                processor.process();
+                threadPool.submitTask(processor);
             }
         } catch (IOException e) {
             e.printStackTrace();
