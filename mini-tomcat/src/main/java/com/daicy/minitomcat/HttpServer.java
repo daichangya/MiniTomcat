@@ -48,7 +48,7 @@ public class HttpServer {
                 servlet.destroy();
             }
         }
-        listenerManager.notifyContextDestroyed(new ServletContextEvent(servletContext));
+        servletContextListenerManager.notifyContextDestroyed(new ServletContextEvent(servletContext));
         SessionManager.removeSession();
     }
 
