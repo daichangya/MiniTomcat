@@ -22,4 +22,14 @@
         <servlet-name>CounterServlet</servlet-name>
         <url-pattern>/counter</url-pattern>
     </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AsyncServlet</servlet-name>
+        <servlet-class>com.daicy.minitomcat.AsyncServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>AsyncServlet</servlet-name>
+        <url-pattern>/async</url-pattern>
+    </servlet-mapping>
 </web-app>

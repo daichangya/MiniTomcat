@@ -42,8 +42,10 @@ public class ServletProcessor {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 response.getWriter().write("Internal Server Error: " + e.getMessage());
             }
-            // 3. 发送响应
-            httpServletResponseImpl.sendResponse();
+            if(!request.isAsyncStarted()){
+                // 3. 发送响应
+                httpServletResponseImpl.sendResponse();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

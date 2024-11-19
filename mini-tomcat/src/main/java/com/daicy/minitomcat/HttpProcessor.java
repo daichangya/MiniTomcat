@@ -3,6 +3,7 @@ package com.daicy.minitomcat;
 import com.daicy.minitomcat.servlet.HttpServletRequestImpl;
 import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.net.Socket;
@@ -28,12 +29,12 @@ public class HttpProcessor implements Runnable{
 
     public void process() {
         boolean keepAlive = false;
-        try (InputStream inputStream = socket.getInputStream();
-             OutputStream outputStream = socket.getOutputStream()) {
-
+        HttpServletRequestImpl request = null;
+        try  {
+            InputStream inputStream = socket.getInputStream();
+            OutputStream outputStream = socket.getOutputStream();
             // 解析请求
-            HttpServletRequestImpl request = HttpRequestParser.parseHttpRequest(inputStream);
-
+            request = HttpRequestParser.parseHttpRequest(inputStream);
             // 构建响应
             HttpServletResponseImpl response = new HttpServletResponseImpl(outputStream);
             if(null == request){
@@ -46,20 +47,20 @@ public class HttpProcessor implements Runnable{
             if (uri.endsWith(".html") || uri.endsWith(".css") || uri.endsWith(".js")) {
                 staticProcessor.process(request, response);
             }else if (null != servletName)  {
+                // 普通请求处理
                 servletProcessor.process(request, response);
             }else {
                 send404Response(outputStream);
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("HttpProcessor error " + e.getMessage());
         } finally {
             try {
-
                 // 如果是 keep-alive，连接保持打开，否则关闭连接
-                if (!keepAlive) {
+                if (!keepAlive && (null!= request && !request.isAsyncSupported())) {
+                    socket.close();
                 }
-                socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -24,6 +24,9 @@ public class HttpServletRequestImpl  implements HttpServletRequest {
 
     private String characterEncoding = "UTF-8";
 
+    private boolean asyncStarted = false;
+    private AsyncContext asyncContext;
+
     public HttpServletRequestImpl(String method, String requestURI, String queryString, Map<String, String> headers) {
         this.method = method;
         this.requestURI = requestURI;
@@ -353,28 +356,37 @@ public class HttpServletRequestImpl  implements HttpServletRequest {
     }
 
     @Override
-    public AsyncContext startAsync() throws IllegalStateException {
-        return null;
-    }
-
-    @Override
-    public AsyncContext startAsync(ServletRequest servletRequest, ServletResponse servletResponse) throws IllegalStateException {
-        return null;
+    public AsyncContext startAsync() {
+       return null;
     }
 
     @Override
     public boolean isAsyncStarted() {
-        return false;
-    }
-
-    @Override
-    public boolean isAsyncSupported() {
-        return false;
+        return asyncStarted;
     }
 
     @Override
     public AsyncContext getAsyncContext() {
-        return null;
+        if (!asyncStarted) {
+            throw new IllegalStateException("Async not started");
+        }
+        return asyncContext;
+    }
+
+
+    @Override
+    public AsyncContext startAsync(ServletRequest servletRequest, ServletResponse servletResponse) throws IllegalStateException {
+        if (asyncStarted) {
+            throw new IllegalStateException("Async already started");
+        }
+        asyncStarted = true;
+        asyncContext = new AsyncContextImpl(this, servletResponse);
+        return asyncContext;
+    }
+
+    @Override
+    public boolean isAsyncSupported() {
+        return asyncStarted;
     }
 
     @Override
