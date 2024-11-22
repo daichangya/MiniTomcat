@@ -5,6 +5,7 @@ import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.Socket;
 import java.util.HashMap;
@@ -41,17 +42,10 @@ public class HttpProcessor implements Runnable{
                 return;
             }
             keepAlive = parseKeepAliveHeader(request) && !isCloseConnection(request);
-            String uri = request.getRequestURI();
-            WebXmlServletContainer parser = HttpServer.parser;
-            String servletName = parser.getServletName(uri);
-            if (uri.endsWith(".html") || uri.endsWith(".css") || uri.endsWith(".js")) {
-                staticProcessor.process(request, response);
-            }else if (null != servletName)  {
-                // 普通请求处理
-                servletProcessor.process(request, response);
-            }else {
-                send404Response(outputStream);
-            }
+            Pipeline pipeline = new Pipeline();
+            pipeline.addValve(new LogValve());
+            pipeline.setBasicValve(new BasicValve());
+            pipeline.invoke(request, response);
 
         } catch (Exception e) {
             System.out.println("HttpProcessor error " + e.getMessage());
@@ -63,6 +57,27 @@ public class HttpProcessor implements Runnable{
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    class BasicValve implements Valve {
+        private OutputStream outputStream;
+        @Override
+        public void invoke(HttpServletRequest request, HttpServletResponse response, ValveContext context) {
+            // 默认的 Valve，处理请求
+            HttpServletRequestImpl requestImpl = (HttpServletRequestImpl) request;
+            HttpServletResponseImpl responseImpl = (HttpServletResponseImpl) response;
+            String uri = request.getRequestURI();
+            WebXmlServletContainer parser = HttpServer.parser;
+            String servletName = parser.getServletName(uri);
+            if (uri.endsWith(".html") || uri.endsWith(".css") || uri.endsWith(".js")) {
+                staticProcessor.process(requestImpl, responseImpl);
+            }else if (null != servletName)  {
+                // 普通请求处理
+                servletProcessor.process(request, response);
+            }else {
+                send404Response(outputStream);
             }
         }
     }
