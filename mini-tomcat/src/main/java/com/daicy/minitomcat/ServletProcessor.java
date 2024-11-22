@@ -4,13 +4,12 @@ package com.daicy.minitomcat;
 import com.daicy.minitomcat.servlet.FilterChainImpl;
 import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
 
-import javax.servlet.Servlet;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
+import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 
 import static com.daicy.minitomcat.HttpProcessor.send404Response;
 
@@ -37,9 +36,29 @@ public class ServletProcessor {
             }
             try {
                 headerHandler.applyHeaders(request, response, request.getSession().getId());
-                FilterChainImpl chain = new FilterChainImpl(HttpServer.filterManager.getFilters());
-                chain.doFilter(request, response);
-                servlet.service(request, response);
+                Servlet finalServlet = servlet;
+                List<Filter> filters = HttpServer.filterManager.getFilters();
+                FilterChain filterChain = new FilterChain() {
+                    int index = 0;
+                    @Override
+                    public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
+                        if (index == filters.size()) {
+                            try {
+                                finalServlet.service(request, response);
+                            } catch (Exception e) {
+                                HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+                                // 捕获异常并设置错误状态码
+                                httpServletResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                                httpServletResponse.getWriter().write("Internal Server Error: " + e.getMessage());
+                            }
+                        } else {
+                            Filter filter = filters.get(index);
+                            index++;
+                            filter.doFilter(request, response, this);
+                        }
+                    }
+                };
+                filterChain.doFilter(request, response);
             } catch (Exception e) {
                 // 捕获异常并设置错误状态码
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
