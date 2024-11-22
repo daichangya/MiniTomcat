@@ -1,5 +1,6 @@
 package com.daicy.minitomcat;
 
+import com.daicy.minitomcat.core.StandardContext;
 import com.daicy.minitomcat.servlet.CustomHttpSession;
 import com.daicy.minitomcat.servlet.ServletContextImpl;
 
@@ -16,7 +17,7 @@ public class HttpServer {
 
     public static ServletContextImpl servletContext = new ServletContextImpl();
 
-    public static WebXmlServletContainer parser;
+    public static StandardContext context;
 
     public static FilterManager filterManager = new FilterManager();
 
@@ -24,14 +25,13 @@ public class HttpServer {
 
     public static HttpSessionListenerManager sessionListenerManager = new HttpSessionListenerManager();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ServletException {
         servletContextListenerManager.addListener(new ServletContextListenerImpl());
         sessionListenerManager.addListener(new HttpSessionListenerImpl());
-        parser = new WebXmlServletContainer();
-        parser.parse("/web.xml",servletContext);
-        filterManager.addFilter(new LoggingFilter());
         // 启动监听器
         servletContextListenerManager.notifyContextInitialized(new ServletContextEvent(servletContext));
+        context = new StandardContext("/web.xml");
+        filterManager.addFilter(new LoggingFilter());
         HttpConnector connector = new HttpConnector();
         connector.start();
 
@@ -41,13 +41,7 @@ public class HttpServer {
 
     public static void stop() {
         System.out.println("Server stopping...");
-        Enumeration<Servlet> servlets = servletContext.getServlets();
-        if(servlets != null){
-            while (servlets.hasMoreElements()){
-                Servlet servlet = servlets.nextElement();
-                servlet.destroy();
-            }
-        }
+        context.unload();
         servletContextListenerManager.notifyContextDestroyed(new ServletContextEvent(servletContext));
         SessionManager.removeSession();
     }

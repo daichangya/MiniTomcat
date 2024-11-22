@@ -229,17 +229,17 @@ public class ServletContextImpl implements ServletContext {
 
     @Override
     public Servlet getServlet(String name) throws ServletException {
-        return HttpServer.parser.getServlet(name);
+        return HttpServer.context.getWrapperByName(name).getServlet();
     }
 
     @Override
     public Enumeration<Servlet> getServlets() {
-        return Collections.enumeration(HttpServer.parser.getServletHashMap().values());
+        return Collections.enumeration(HttpServer.context.getServlets());
     }
 
     @Override
     public Enumeration<String> getServletNames() {
-        return Collections.enumeration(HttpServer.parser.getServletHashMap().keySet());
+        return Collections.enumeration(HttpServer.context.getServletNames());
     }
     @Override
     public void log(String msg) {

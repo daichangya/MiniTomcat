@@ -1,5 +1,8 @@
 package com.daicy.minitomcat;
 
+import com.daicy.minitomcat.core.Valve;
+import com.daicy.minitomcat.core.ValveContext;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 

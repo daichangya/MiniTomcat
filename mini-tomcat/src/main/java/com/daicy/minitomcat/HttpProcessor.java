@@ -1,15 +1,13 @@
 package com.daicy.minitomcat;
 
+import com.daicy.minitomcat.core.*;
 import com.daicy.minitomcat.servlet.HttpServletRequestImpl;
 import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
 
-import javax.servlet.AsyncContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
 
 public class HttpProcessor implements Runnable{
     private Socket socket;
@@ -69,11 +67,11 @@ public class HttpProcessor implements Runnable{
             HttpServletRequestImpl requestImpl = (HttpServletRequestImpl) request;
             HttpServletResponseImpl responseImpl = (HttpServletResponseImpl) response;
             String uri = request.getRequestURI();
-            WebXmlServletContainer parser = HttpServer.parser;
-            String servletName = parser.getServletName(uri);
+            StandardContext standardContext = HttpServer.context;
+            Wrapper wrapper = standardContext.getWrapper(uri);
             if (uri.endsWith(".html") || uri.endsWith(".css") || uri.endsWith(".js")) {
                 staticProcessor.process(requestImpl, responseImpl);
-            }else if (null != servletName)  {
+            }else if (null != wrapper)  {
                 // 普通请求处理
                 servletProcessor.process(request, response);
             }else {

@@ -8,7 +8,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import com.daicy.minitomcat.servlet.ServletConfigImpl;
 import org.w3c.dom.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletConfig;
 
@@ -17,13 +19,13 @@ public class WebXmlServletContainer {
 
     private  Map<String, ServletConfig> servletConfigMap = new HashMap<>();
 
-    private Map<String, Servlet> servletHashMap = new HashMap<>();
-
     private ServletContext servletContext;
 
-    public void parse(String xmlPath, ServletContext servletContext) {
+    private List<String> servletNames = new ArrayList<>();
+
+    public void loadConfig(String xmlPath) {
         try {
-            this.servletContext = servletContext;
+            this.servletContext = HttpServer.servletContext;
 
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -45,7 +47,7 @@ public class WebXmlServletContainer {
                 }
                 ServletConfig servletConfig = new ServletConfigImpl(servletName, servletContext, initParamsMap);
                 servletConfigMap.put(servletClass, servletConfig);
-                servletContext.setAttribute(servletName, servletClass);
+                servletNames.add(servletName);
             }
 
             NodeList mappingNodes = doc.getElementsByTagName("servlet-mapping");
@@ -60,28 +62,16 @@ public class WebXmlServletContainer {
         }
     }
 
-    public ServletConfig getServletConfig(String urlPattern) {
-        String servletClass = getServletClass(getServletName(urlPattern));
-        return servletConfigMap.get(servletClass);
-    }
 
     public String getServletName(String urlPattern) {
         return (String) servletContext.getAttribute(urlPattern);
     }
 
-    public String getServletClass(String servletName) {
-        return (String) servletContext.getAttribute(servletName);
+    public Map<String, ServletConfig> getServletConfigMap() {
+    	return servletConfigMap;
     }
 
-    public Servlet getServlet(String servletName) {
-        return servletHashMap.get(servletName);
-    }
-
-    public void setServlet(String servletName,Servlet servlet) {
-         servletHashMap.put(servletName,servlet);
-    }
-
-    public Map<String, Servlet> getServletHashMap() {
-    	return servletHashMap;
+    public List<String> getServletNames() {
+    	return servletNames;
     }
 }
