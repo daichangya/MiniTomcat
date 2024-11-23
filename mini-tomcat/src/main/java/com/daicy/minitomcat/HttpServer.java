@@ -42,7 +42,7 @@ public class HttpServer {
 
     public static void stop() {
         try {
-            System.out.println("Server stopping...");
+            LogManager.getLogger().info("Server stopping...");
             context.stop();
             servletContextListenerManager.notifyContextDestroyed(new ServletContextEvent(servletContext));
             SessionManager.removeSession();

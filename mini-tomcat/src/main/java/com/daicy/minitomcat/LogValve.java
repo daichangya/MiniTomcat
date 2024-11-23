@@ -10,7 +10,7 @@ public class LogValve implements Valve {
 
     @Override
     public void invoke(HttpServletRequest request, HttpServletResponse response, ValveContext context) {
-        System.out.println("LogValve: Logging request " + request.getRequestURI());
+        LogManager.getLogger().info("LogValve: Logging request " + request.getRequestURI());
         context.invokeNext(request, response); // 调用下一个 Valve
     }
 }

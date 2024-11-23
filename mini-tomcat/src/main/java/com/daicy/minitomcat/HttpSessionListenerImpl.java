@@ -9,7 +9,7 @@ public class HttpSessionListenerImpl implements HttpSessionListener {
     @Override
     public void sessionCreated(HttpSessionEvent httpSessionEvent) {
         HttpSession session = httpSessionEvent.getSession();
-        System.out.println("Session created with ID: " + session.getId());
+        LogManager.getLogger().info("Session created with ID: " + session.getId());
         // 可以在这里进行与新会话相关的初始化操作，如创建会话相关的缓存
         session.setAttribute("created", true);
     }
@@ -17,7 +17,7 @@ public class HttpSessionListenerImpl implements HttpSessionListener {
     @Override
     public void sessionDestroyed(HttpSessionEvent httpSessionEvent) {
         HttpSession session = httpSessionEvent.getSession();
-        System.out.println("Session destroyed with ID: " + session.getId());
+        LogManager.getLogger().info("Session destroyed with ID: " + session.getId());
         // 可以在这里清理与该会话相关的资源
         session.removeAttribute("created");
     }

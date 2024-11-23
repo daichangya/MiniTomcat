@@ -17,11 +17,11 @@ public class HttpConnector implements Runnable {
     @Override
     public void run() {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("HTTP Connector is running on port " + PORT);
+            LogManager.getLogger().info("HTTP Connector is running on port " + PORT);
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("Accepted connection from " + clientSocket.getInetAddress());
+                LogManager.getLogger().info("Accepted connection from " + clientSocket.getInetAddress());
 
                 // 将连接交给 HttpProcessor 处理
                 HttpProcessor processor = new HttpProcessor(clientSocket);

@@ -16,7 +16,7 @@ public class HelloServlet implements Servlet {
 
     @Override
     public void init(ServletConfig servletConfig) {
-        System.out.println("HelloServlet initialized.");
+        LogManager.getLogger().info("HelloServlet initialized.");
         this.servletConfig = servletConfig;
     }
 
@@ -46,6 +46,6 @@ public class HelloServlet implements Servlet {
 
     @Override
     public void destroy() {
-        System.out.println("HelloServlet destroyed.");
+        LogManager.getLogger().info("HelloServlet destroyed.");
     }
 }

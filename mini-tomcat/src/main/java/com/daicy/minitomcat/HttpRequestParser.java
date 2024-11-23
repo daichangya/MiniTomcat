@@ -14,7 +14,7 @@ public class HttpRequestParser {
         // 读取请求行
         String requestLine = reader.readLine();
         if (requestLine == null || requestLine.isEmpty()) {
-            System.out.println(reader.readLine());
+            LogManager.getLogger().info(reader.readLine());
             throw new IOException("Empty request line");
         }
 
@@ -57,13 +57,13 @@ public class HttpRequestParser {
         Request request = parseHttpRequest(inputStream);
 
         // 输出解析后的信息
-        System.out.println("Method: " + request.getMethod());
-        System.out.println("Request URI: " + request.getRequestURI());
-        System.out.println("Query String: " + request.getQueryString());
-        System.out.println("Session ID: " + request.getSession().getId());
-        System.out.println("Cookies:");
+        LogManager.getLogger().info("Method: " + request.getMethod());
+        LogManager.getLogger().info("Request URI: " + request.getRequestURI());
+        LogManager.getLogger().info("Query String: " + request.getQueryString());
+        LogManager.getLogger().info("Session ID: " + request.getSession().getId());
+        LogManager.getLogger().info("Cookies:");
         for (Cookie cookie : request.getCookies()) {
-            System.out.println("  " + cookie.getName() + "=" + cookie.getValue());
+            LogManager.getLogger().info("  " + cookie.getName() + "=" + cookie.getValue());
         }
     }
 }

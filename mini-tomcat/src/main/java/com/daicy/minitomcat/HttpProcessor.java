@@ -48,7 +48,7 @@ public class HttpProcessor implements Runnable{
             pipeline.invoke(request, response);
 
         } catch (Exception e) {
-            System.out.println("HttpProcessor error " + e.getMessage());
+            LogManager.getLogger().info("HttpProcessor error " + e.getMessage());
             e.printStackTrace();
         } finally {
             try {

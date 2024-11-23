@@ -17,12 +17,12 @@ public class LoggingFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         long startTime = System.currentTimeMillis();
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        System.out.println("Request started at: " + startTime + " for path: " + request.getRequestURI());
+        LogManager.getLogger().info("Request started at: " + startTime + " for path: " + request.getRequestURI());
 
         filterChain.doFilter(servletRequest, servletResponse);
 
         long endTime = System.currentTimeMillis();
-        System.out.println("Request completed at: " + endTime + " for path: " + request.getRequestURI() + " Took: " + (endTime - startTime) + "ms");
+        LogManager.getLogger().info("Request completed at: " + endTime + " for path: " + request.getRequestURI() + " Took: " + (endTime - startTime) + "ms");
     }
 
     @Override
