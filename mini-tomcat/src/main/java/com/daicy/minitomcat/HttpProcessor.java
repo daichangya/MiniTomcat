@@ -44,7 +44,7 @@ public class HttpProcessor implements Runnable{
             keepAlive = parseKeepAliveHeader(request) && !isCloseConnection(request);
             Pipeline pipeline = new Pipeline();
             pipeline.addValve(new LogValve());
-            pipeline.setBasicValve(new BasicValve());
+            pipeline.setBasicValve(new BasicValve(outputStream));
             pipeline.invoke(request, response);
 
         } catch (Exception e) {
@@ -64,6 +64,10 @@ public class HttpProcessor implements Runnable{
 
     class BasicValve implements Valve {
         private OutputStream outputStream;
+
+        public BasicValve(OutputStream outputStream) {
+            this.outputStream = outputStream;
+        }
         @Override
         public void invoke(HttpServletRequest request, HttpServletResponse response, ValveContext context) {
             // 默认的 Valve，处理请求
@@ -105,8 +109,9 @@ public class HttpProcessor implements Runnable{
         writer.println("HTTP/1.1 " + statusCode + " " + statusText);
         writer.println("Content-Type: text/html; charset=UTF-8");
         writer.println("Content-Length: " + html.length());
-        writer.println();
+        writer.println();   
         writer.println(html);
+        writer.flush();
     }
 
 }
