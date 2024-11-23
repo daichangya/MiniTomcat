@@ -31,6 +31,7 @@ public class HttpServer {
         // 启动监听器
         servletContextListenerManager.notifyContextInitialized(new ServletContextEvent(servletContext));
         context = new StandardContext("/web.xml");
+        context.start();
         filterManager.addFilter(new LoggingFilter());
         HttpConnector connector = new HttpConnector();
         connector.start();

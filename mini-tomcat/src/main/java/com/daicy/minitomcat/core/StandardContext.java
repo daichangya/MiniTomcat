@@ -19,7 +19,6 @@ public class StandardContext implements Context{
     public StandardContext(String configFilePath) throws Exception {
         config = new WebXmlServletContainer();
         config.loadConfig(configFilePath);
-        start();
     }
 
     public Wrapper getWrapper(String servletPath) {

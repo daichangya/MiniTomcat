@@ -6,7 +6,6 @@ import javax.servlet.http.HttpServletResponse;
 
 public class StandardWrapper implements Wrapper {
 
-
     private Servlet servlet;
 
     private String className;
