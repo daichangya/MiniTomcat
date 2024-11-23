@@ -6,6 +6,7 @@ import java.net.URL;
 import java.nio.file.*;
 
 import static com.daicy.minitomcat.HttpServer.CONF_PATH;
+import static com.daicy.minitomcat.HttpServer.WEB_XML;
 
 public class HotDeployment {
 
@@ -78,7 +79,7 @@ public class HotDeployment {
         System.out.println("Reloading application: " + filePath);
         // 重新加载应用的 Servlet 和配置
         try {
-            HttpServer.context = new StandardContext("/conf/web.xml");
+            HttpServer.context = new StandardContext(WEB_XML);
             HttpServer.context.start();
         } catch (Exception e) {
             e.printStackTrace();
