@@ -16,10 +16,10 @@ public class StandardContext implements Context{
 
     private WebXmlServletContainer config;
 
-    public StandardContext(String configFilePath) throws ServletException {
+    public StandardContext(String configFilePath) throws Exception {
         config = new WebXmlServletContainer();
         config.loadConfig(configFilePath);
-        load();
+        start();
     }
 
     public Wrapper getWrapper(String servletPath) {
@@ -32,23 +32,25 @@ public class StandardContext implements Context{
     }
 
     @Override
-    public void load() throws ServletException {
+    public void start() throws Exception {
         Map<String, ServletConfig> servletConfigMap = config.getServletConfigMap();
         for (String className : servletConfigMap.keySet()) {
             ServletConfig servletConfig = servletConfigMap.get(className);
             Wrapper wrapper = new StandardWrapper(servletConfig, className);
-            wrapper.loadServlet();
+            wrapper.start();
             wrapperMap.put(servletConfig.getServletName(), wrapper);
         }
     }
 
     @Override
-    public void unload() {
+    public void stop() throws Exception {
         List<Wrapper> wrappers = getWrappers();
         if(null == wrappers){
             return ;
         }
-        wrappers.forEach(Wrapper::unloadServlet);
+        for (Wrapper wrapper : wrappers){
+            wrapper.stop();
+        }
     }
 
     @Override

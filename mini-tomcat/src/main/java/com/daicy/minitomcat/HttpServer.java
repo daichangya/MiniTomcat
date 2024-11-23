@@ -25,7 +25,7 @@ public class HttpServer {
 
     public static HttpSessionListenerManager sessionListenerManager = new HttpSessionListenerManager();
 
-    public static void main(String[] args) throws ServletException {
+    public static void main(String[] args) throws Exception {
         servletContextListenerManager.addListener(new ServletContextListenerImpl());
         sessionListenerManager.addListener(new HttpSessionListenerImpl());
         // 启动监听器
@@ -40,10 +40,14 @@ public class HttpServer {
     }
 
     public static void stop() {
-        System.out.println("Server stopping...");
-        context.unload();
-        servletContextListenerManager.notifyContextDestroyed(new ServletContextEvent(servletContext));
-        SessionManager.removeSession();
+        try {
+            System.out.println("Server stopping...");
+            context.stop();
+            servletContextListenerManager.notifyContextDestroyed(new ServletContextEvent(servletContext));
+            SessionManager.removeSession();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

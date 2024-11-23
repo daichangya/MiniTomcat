@@ -41,16 +41,15 @@ public class HttpProcessor implements Runnable{
             if(null == request){
                 return;
             }
-            RequestFacade requestFacade = new RequestFacade(request);
-            ResponseFacade responseFacade = new ResponseFacade(response);
-            keepAlive = parseKeepAliveHeader(requestFacade) && !isCloseConnection(requestFacade);
+            keepAlive = parseKeepAliveHeader(request) && !isCloseConnection(request);
             Pipeline pipeline = new Pipeline();
             pipeline.addValve(new LogValve());
             pipeline.setBasicValve(new BasicValve());
-            pipeline.invoke(requestFacade, responseFacade);
+            pipeline.invoke(request, response);
 
         } catch (Exception e) {
             System.out.println("HttpProcessor error " + e.getMessage());
+            e.printStackTrace();
         } finally {
             try {
                 // 如果是 keep-alive，连接保持打开，否则关闭连接
@@ -68,13 +67,13 @@ public class HttpProcessor implements Runnable{
         @Override
         public void invoke(HttpServletRequest request, HttpServletResponse response, ValveContext context) {
             // 默认的 Valve，处理请求
-            Request requestImpl = (Request) request;
-            Response responseImpl = (Response) response;
+//            Request requestImpl = (Request) request;
+//            Response responseImpl = (Response) response;
             String uri = request.getRequestURI();
             StandardContext standardContext = HttpServer.context;
             Wrapper wrapper = standardContext.getWrapper(uri);
             if (uri.endsWith(".html") || uri.endsWith(".css") || uri.endsWith(".js")) {
-                staticProcessor.process(requestImpl, responseImpl);
+                staticProcessor.process(request, response);
             }else if (null != wrapper)  {
                 // 普通请求处理
                 servletProcessor.process(request, response);

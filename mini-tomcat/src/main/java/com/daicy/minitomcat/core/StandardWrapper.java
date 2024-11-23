@@ -19,7 +19,7 @@ public class StandardWrapper implements Wrapper {
     }
 
     @Override
-    public void loadServlet() throws ServletException {
+    public void start() throws ServletException {
         try {
             // 加载 Servlet 实例
             servlet = (Servlet) Class.forName(className).newInstance();
@@ -36,7 +36,7 @@ public class StandardWrapper implements Wrapper {
 
 
     @Override
-    public void unloadServlet() {
+    public void stop() {
         if (servlet != null) {
             servlet.destroy();
         }

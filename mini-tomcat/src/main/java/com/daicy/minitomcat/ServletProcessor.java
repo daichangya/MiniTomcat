@@ -23,7 +23,10 @@ public class ServletProcessor {
             StandardContext standardContext = HttpServer.context;
             Wrapper wrapper = standardContext.getWrapper(uri);
             try {
-                headerHandler.applyHeaders(request, response, request.getSession().getId());
+                RequestFacade requestFacade = new RequestFacade(request);
+                ResponseFacade responseFacade = new ResponseFacade(response);
+
+                headerHandler.applyHeaders(requestFacade, responseFacade, requestFacade.getSession().getId());
                 List<Filter> filters = HttpServer.filterManager.getFilters();
                 FilterChain filterChain = new FilterChain() {
                     int index = 0;
@@ -45,7 +48,7 @@ public class ServletProcessor {
                         }
                     }
                 };
-                filterChain.doFilter(request, response);
+                filterChain.doFilter(requestFacade, responseFacade);
             } catch (Exception e) {
                 // 捕获异常并设置错误状态码
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
