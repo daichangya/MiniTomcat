@@ -1,11 +1,13 @@
 package com.daicy.minitomcat;
 
 import com.daicy.minitomcat.core.*;
-import com.daicy.minitomcat.servlet.HttpServletRequestImpl;
-import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
+import com.daicy.minitomcat.servlet.Request;
+import com.daicy.minitomcat.servlet.Response;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.*;
 import java.net.Socket;
 
@@ -28,22 +30,24 @@ public class HttpProcessor implements Runnable{
 
     public void process() {
         boolean keepAlive = false;
-        HttpServletRequestImpl request = null;
+        Request request = null;
         try  {
             InputStream inputStream = socket.getInputStream();
             OutputStream outputStream = socket.getOutputStream();
             // 解析请求
             request = HttpRequestParser.parseHttpRequest(inputStream);
             // 构建响应
-            HttpServletResponseImpl response = new HttpServletResponseImpl(outputStream);
+            Response response = new Response(outputStream);
             if(null == request){
                 return;
             }
-            keepAlive = parseKeepAliveHeader(request) && !isCloseConnection(request);
+            RequestFacade requestFacade = new RequestFacade(request);
+            ResponseFacade responseFacade = new ResponseFacade(response);
+            keepAlive = parseKeepAliveHeader(requestFacade) && !isCloseConnection(requestFacade);
             Pipeline pipeline = new Pipeline();
             pipeline.addValve(new LogValve());
             pipeline.setBasicValve(new BasicValve());
-            pipeline.invoke(request, response);
+            pipeline.invoke(requestFacade, responseFacade);
 
         } catch (Exception e) {
             System.out.println("HttpProcessor error " + e.getMessage());
@@ -64,8 +68,8 @@ public class HttpProcessor implements Runnable{
         @Override
         public void invoke(HttpServletRequest request, HttpServletResponse response, ValveContext context) {
             // 默认的 Valve，处理请求
-            HttpServletRequestImpl requestImpl = (HttpServletRequestImpl) request;
-            HttpServletResponseImpl responseImpl = (HttpServletResponseImpl) response;
+            Request requestImpl = (Request) request;
+            Response responseImpl = (Response) response;
             String uri = request.getRequestURI();
             StandardContext standardContext = HttpServer.context;
             Wrapper wrapper = standardContext.getWrapper(uri);

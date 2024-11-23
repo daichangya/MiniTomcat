@@ -14,7 +14,7 @@ public class HttpServletResponseImplTest {
     public void testCreate() throws IOException {
         // 将完整响应写入到控制台（可替换为实际网络输出流）
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        HttpServletResponseImpl response = new HttpServletResponseImpl(outputStream);
+        Response response = new Response(outputStream);
 
         // 设置响应状态码和头信息
         response.setStatus(HttpServletResponse.SC_OK);

@@ -28,7 +28,7 @@ public class AsyncContextImpl implements AsyncContext {
     public void complete() {
         try {
             // 完成异步响应
-            HttpServletResponseImpl response = (HttpServletResponseImpl) this.response;
+            Response response = (Response) this.response;
             response.sendResponse();
         } catch (IOException e) {
             throw new RuntimeException(e);

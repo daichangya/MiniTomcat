@@ -1,15 +1,14 @@
 package com.daicy.minitomcat;
 
-import com.daicy.minitomcat.servlet.HttpServletRequestImpl;
+import com.daicy.minitomcat.servlet.Request;
 
 import javax.servlet.http.Cookie;
 import java.io.*;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
 public class HttpRequestParser {
-    public static HttpServletRequestImpl parseHttpRequest(InputStream inputStream) throws IOException {
+    public static Request parseHttpRequest(InputStream inputStream) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
         // 读取请求行
@@ -43,7 +42,7 @@ public class HttpRequestParser {
         }
 
         // 创建并返回 HttpServletRequestImpl
-        return new HttpServletRequestImpl(method, requestURI, queryString, headers);
+        return new Request(method, requestURI, queryString, headers);
     }
 
     public static void main(String[] args) throws IOException {
@@ -55,7 +54,7 @@ public class HttpRequestParser {
                 "Cookie: sessionId=abc123; theme=light\r\n\r\n";
         InputStream inputStream = new ByteArrayInputStream(httpRequest.getBytes());
 
-        HttpServletRequestImpl request = parseHttpRequest(inputStream);
+        Request request = parseHttpRequest(inputStream);
 
         // 输出解析后的信息
         System.out.println("Method: " + request.getMethod());

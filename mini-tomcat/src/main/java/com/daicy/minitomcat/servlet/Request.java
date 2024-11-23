@@ -10,7 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.*;
 
-public class HttpServletRequestImpl  implements HttpServletRequest {
+public class Request implements HttpServletRequest {
     private String method;
     private String requestURI;
     private String queryString;
@@ -27,7 +27,7 @@ public class HttpServletRequestImpl  implements HttpServletRequest {
     private boolean asyncStarted = false;
     private AsyncContext asyncContext;
 
-    public HttpServletRequestImpl(String method, String requestURI, String queryString, Map<String, String> headers) {
+    public Request(String method, String requestURI, String queryString, Map<String, String> headers) {
         this.method = method;
         this.requestURI = requestURI;
         this.queryString = queryString;

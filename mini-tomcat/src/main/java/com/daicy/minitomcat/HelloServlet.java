@@ -1,12 +1,9 @@
 package com.daicy.minitomcat;
 
 
-import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
-
 import javax.servlet.*;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 public class HelloServlet implements Servlet {
 

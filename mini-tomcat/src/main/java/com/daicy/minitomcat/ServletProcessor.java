@@ -3,17 +3,13 @@ package com.daicy.minitomcat;
 
 import com.daicy.minitomcat.core.StandardContext;
 import com.daicy.minitomcat.core.Wrapper;
-import com.daicy.minitomcat.servlet.FilterChainImpl;
-import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
+import com.daicy.minitomcat.servlet.Response;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
-
-import static com.daicy.minitomcat.HttpProcessor.send404Response;
 
 public class ServletProcessor {
 
@@ -22,7 +18,7 @@ public class ServletProcessor {
 
     public void process(HttpServletRequest request, HttpServletResponse response) {
         String uri = request.getRequestURI();
-        HttpServletResponseImpl httpServletResponseImpl = (HttpServletResponseImpl) response;
+        Response httpServletResponseImpl = (Response) response;
         try {
             StandardContext standardContext = HttpServer.context;
             Wrapper wrapper = standardContext.getWrapper(uri);

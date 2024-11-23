@@ -1,6 +1,6 @@
 package com.daicy.minitomcat;
 
-import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
+import com.daicy.minitomcat.servlet.Response;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -21,7 +21,7 @@ public class CounterServlet implements Servlet {
     @Override
     public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
         HttpServletRequest request = (HttpServletRequest) req;
-        HttpServletResponseImpl response = (HttpServletResponseImpl) res;
+        Response response = (Response) res;
         HttpSession session = request.getSession();
         Integer count = (Integer) session.getAttribute("count");
         if (count == null) {

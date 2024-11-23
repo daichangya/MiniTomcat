@@ -9,7 +9,7 @@ import java.util.*;
 /**
  * @author changyadai
  */
-public class HttpServletResponseImpl implements HttpServletResponse {
+public class Response implements HttpServletResponse {
     private String characterEncoding = "UTF-8";
 
     private int statusCode = HttpServletResponse.SC_OK;
@@ -20,7 +20,7 @@ public class HttpServletResponseImpl implements HttpServletResponse {
     private PrintWriter writer = new PrintWriter(new OutputStreamWriter(body,characterEncoding));  // 用于写入响应主体内容
     private OutputStream outputStream;
 
-    public HttpServletResponseImpl(OutputStream outputStream) throws UnsupportedEncodingException {
+    public Response(OutputStream outputStream) throws UnsupportedEncodingException {
         this.outputStream = outputStream;
     }
 

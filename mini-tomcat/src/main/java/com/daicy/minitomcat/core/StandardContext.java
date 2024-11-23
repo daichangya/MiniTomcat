@@ -1,15 +1,11 @@
 package com.daicy.minitomcat.core;
 
-import com.daicy.minitomcat.HttpServer;
 import com.daicy.minitomcat.WebXmlServletContainer;
-import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
 import com.google.common.collect.Lists;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.util.*;
 import java.util.stream.Collectors;

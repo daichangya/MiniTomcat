@@ -1,7 +1,7 @@
 package com.daicy.minitomcat;
 
-import com.daicy.minitomcat.servlet.HttpServletRequestImpl;
-import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
+import com.daicy.minitomcat.servlet.Request;
+import com.daicy.minitomcat.servlet.Response;
 
 import java.io.*;
 import java.net.URL;
@@ -10,7 +10,7 @@ import static com.daicy.minitomcat.HttpProcessor.send404Response;
 import static com.daicy.minitomcat.HttpServer.WEB_ROOT;
 
 public class StaticResourceProcessor {
-    public void process(HttpServletRequestImpl request, HttpServletResponseImpl response) {
+    public void process(Request request, Response response) {
         try {
 
             OutputStream outputStream = response.getOutputStream();
