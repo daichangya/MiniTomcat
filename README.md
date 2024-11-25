@@ -7,6 +7,8 @@
 
 # MiniTomcat (https://github.com/daichangya/miniTomcat)
 
+[新的MiniTomcat系列课程](MiniTomcat.md)
+
 
 **这个项目是一个基于Netty的Java Web服务器，它提供了从简单HTTP服务器到集成Spring Boot等多个版本的演进。以下是对该项目的详细概述：**
 
