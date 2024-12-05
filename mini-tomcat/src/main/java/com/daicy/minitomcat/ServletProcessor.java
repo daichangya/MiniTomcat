@@ -28,7 +28,7 @@ public class ServletProcessor {
             Wrapper wrapper = standardContext.getWrapper(uri);
             try {
                 headerHandler.applyHeaders(request, response, request.getSession().getId());
-                List<Filter> filters = HttpServer.filterManager.getFilters();
+                List<Filter> filters = StandardContext.filterManager.getFilters();
                 FilterChain filterChain = new FilterChain() {
                     int index = 0;
                     @Override

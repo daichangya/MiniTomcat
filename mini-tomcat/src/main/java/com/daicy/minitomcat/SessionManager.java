@@ -1,5 +1,6 @@
 package com.daicy.minitomcat;
 
+import com.daicy.minitomcat.core.StandardContext;
 import com.daicy.minitomcat.servlet.CustomHttpSession;
 
 import javax.servlet.http.HttpSession;
@@ -25,7 +26,7 @@ public class SessionManager {
         sessions.put(sessionId, session);
         HttpSessionEvent sessionEvent = new HttpSessionEvent(session);
         if (session.isNew()) {
-            HttpServer.sessionListenerManager.sessionCreated(sessionEvent);
+            StandardContext.sessionListenerManager.sessionCreated(sessionEvent);
         }
         return session;
     }
@@ -43,14 +44,14 @@ public class SessionManager {
         HttpSession session = sessions.get(sessionId);
         sessions.remove(sessionId);
         HttpSessionEvent sessionEvent = new HttpSessionEvent(session);
-        HttpServer.sessionListenerManager.sessionDestroyed(sessionEvent);
+        StandardContext.sessionListenerManager.sessionDestroyed(sessionEvent);
     }
 
     public static void removeSession() {
         if (sessions != null) {
             for (CustomHttpSession session : sessions.values()){
                 HttpSessionEvent sessionEvent = new HttpSessionEvent(session);
-                HttpServer.sessionListenerManager.sessionDestroyed(sessionEvent);
+                StandardContext.sessionListenerManager.sessionDestroyed(sessionEvent);
             }
         }
     }

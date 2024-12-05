@@ -1,15 +1,13 @@
 package com.daicy.minitomcat.core;
 
-import com.daicy.minitomcat.HttpServer;
-import com.daicy.minitomcat.WebXmlServletContainer;
+import com.daicy.minitomcat.*;
 import com.daicy.minitomcat.servlet.HttpServletResponseImpl;
 import com.google.common.collect.Lists;
 
-import javax.servlet.Servlet;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
+import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSessionListener;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,6 +17,14 @@ public class StandardContext implements Context{
     private Map<String, Wrapper> wrapperMap = new HashMap<>();
 
     private WebXmlServletContainer config;
+
+
+    private static ServletContextListenerManager servletContextListenerManager = new ServletContextListenerManager();
+
+    public static HttpSessionListenerManager sessionListenerManager = new HttpSessionListenerManager();
+
+    public static FilterManager filterManager = new FilterManager();
+
 
     public StandardContext(String configFilePath) throws ServletException {
         config = new WebXmlServletContainer();
@@ -72,4 +78,25 @@ public class StandardContext implements Context{
     public List<String> getServletNames() {
         return config.getServletNames();
     }
+
+    public  void  addFilter(Filter filter){
+        filterManager.addFilter(filter);
+    }
+
+    public  void  addListener(ServletContextListener listener){
+        servletContextListenerManager.addListener(listener);
+    }
+
+    public void addSessionListener(HttpSessionListener listener){
+    	sessionListenerManager.addListener(listener);
+    }
+
+    public void notifyContextInitialized(ServletContextEvent sce){
+        servletContextListenerManager.notifyContextInitialized(sce);
+    }
+
+    public void notifyContextDestroyed(ServletContextEvent sce){
+        servletContextListenerManager.notifyContextDestroyed(sce);
+    }
+
 }

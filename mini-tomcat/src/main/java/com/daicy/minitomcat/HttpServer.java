@@ -19,19 +19,13 @@ public class HttpServer {
 
     public static StandardContext context;
 
-    public static FilterManager filterManager = new FilterManager();
-
-    private static ServletContextListenerManager servletContextListenerManager = new ServletContextListenerManager();
-
-    public static HttpSessionListenerManager sessionListenerManager = new HttpSessionListenerManager();
-
     public static void main(String[] args) throws ServletException {
-        servletContextListenerManager.addListener(new ServletContextListenerImpl());
-        sessionListenerManager.addListener(new HttpSessionListenerImpl());
-        // 启动监听器
-        servletContextListenerManager.notifyContextInitialized(new ServletContextEvent(servletContext));
         context = new StandardContext("/web.xml");
-        filterManager.addFilter(new LoggingFilter());
+        context.addFilter(new LoggingFilter());
+        context.addListener(new ServletContextListenerImpl());
+        context.addSessionListener(new HttpSessionListenerImpl());
+        // 启动监听器
+        context.notifyContextInitialized(new ServletContextEvent(servletContext));
         HttpConnector connector = new HttpConnector();
         connector.start();
 
@@ -42,7 +36,7 @@ public class HttpServer {
     public static void stop() {
         System.out.println("Server stopping...");
         context.unload();
-        servletContextListenerManager.notifyContextDestroyed(new ServletContextEvent(servletContext));
+        context.notifyContextDestroyed(new ServletContextEvent(servletContext));
         SessionManager.removeSession();
     }
 
