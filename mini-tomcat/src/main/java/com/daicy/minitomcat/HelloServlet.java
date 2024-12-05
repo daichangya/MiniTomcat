@@ -28,6 +28,7 @@ public class HelloServlet implements Servlet {
         try {
             String greeting = servletConfig.getInitParameter("greeting");
             response.getWriter().println("<html><body><h1>" + greeting + "</h1></body></html>");
+            Thread.sleep(50);
             response.getWriter().flush();
 
 //            HttpServletResponseImpl responseImpl = (HttpServletResponseImpl) response;
@@ -39,6 +40,8 @@ public class HelloServlet implements Servlet {
 //            writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
