@@ -1,5 +1,7 @@
 package com.daicy.minitomcat;
 
+import com.daicy.minitomcat.log.LogManager;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -17,11 +19,11 @@ public class HttpConnector implements Runnable {
     @Override
     public void run() {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            LogManager.getLogger().info("HTTP Connector is running on port " + PORT);
+            LogManager.info("HTTP Connector is running on port " + PORT);
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                LogManager.getLogger().info("Accepted connection from " + clientSocket.getInetAddress());
+                LogManager.info("Accepted connection from " + clientSocket.getInetAddress());
 
                 // 将连接交给 HttpProcessor 处理
                 HttpProcessor processor = new HttpProcessor(clientSocket);

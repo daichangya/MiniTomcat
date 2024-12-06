@@ -1,6 +1,7 @@
 package com.daicy.minitomcat;
 
 import com.daicy.minitomcat.core.*;
+import com.daicy.minitomcat.log.LogManager;
 import com.daicy.minitomcat.servlet.Request;
 import com.daicy.minitomcat.servlet.Response;
 
@@ -48,7 +49,7 @@ public class HttpProcessor implements Runnable{
             pipeline.invoke(request, response);
 
         } catch (Exception e) {
-            LogManager.getLogger().info("HttpProcessor error " + e.getMessage());
+            LogManager.info("HttpProcessor error " + e.getMessage());
             e.printStackTrace();
         } finally {
             try {
