@@ -1,6 +1,10 @@
 package com.daicy.minitomcat;
 
 import com.daicy.minitomcat.core.StandardContext;
+import com.daicy.minitomcat.log.ConsoleLogger;
+import com.daicy.minitomcat.log.FileLogger;
+import com.daicy.minitomcat.log.LogLevel;
+import com.daicy.minitomcat.log.LogManager;
 import com.daicy.minitomcat.servlet.ServletContextImpl;
 
 import javax.servlet.*;
@@ -37,6 +41,10 @@ public class HttpServer {
         daemonThread.setDaemon(true);
         daemonThread.start();
 
+        LogManager.addLogger(new ConsoleLogger(LogLevel.INFO));
+        LogManager.addLogger(new FileLogger(LogLevel.DEBUG, "mini-tomcat.log"));
+
+
         servletContextListenerManager.addListener(new ServletContextListenerImpl());
         sessionListenerManager.addListener(new HttpSessionListenerImpl());
         // 启动监听器
@@ -53,7 +61,7 @@ public class HttpServer {
 
     public static void stop() {
         try {
-            LogManager.getLogger().info("Server stopping...");
+            LogManager.info("Server stopping...");
             context.stop();
             servletContextListenerManager.notifyContextDestroyed(new ServletContextEvent(servletContext));
             SessionManager.removeSession();

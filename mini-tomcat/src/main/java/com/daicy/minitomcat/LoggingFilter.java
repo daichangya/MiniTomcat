@@ -1,5 +1,7 @@
 package com.daicy.minitomcat;
 
+import com.daicy.minitomcat.log.LogManager;
+
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -17,12 +19,12 @@ public class LoggingFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         long startTime = System.currentTimeMillis();
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        LogManager.getLogger().info("Request started at: " + startTime + " for path: " + request.getRequestURI());
+        LogManager.info("Request started at: " + startTime + " for path: " + request.getRequestURI());
 
         filterChain.doFilter(servletRequest, servletResponse);
 
         long endTime = System.currentTimeMillis();
-        LogManager.getLogger().info("Request completed at: " + endTime + " for path: " + request.getRequestURI() + " Took: " + (endTime - startTime) + "ms");
+        LogManager.info("Request completed at: " + endTime + " for path: " + request.getRequestURI() + " Took: " + (endTime - startTime) + "ms");
     }
 
     @Override

@@ -1,6 +1,8 @@
 package com.daicy.minitomcat;
 
 
+import com.daicy.minitomcat.log.LogManager;
+
 import javax.servlet.*;
 
 import java.io.IOException;
@@ -16,7 +18,7 @@ public class HelloServlet implements Servlet {
 
     @Override
     public void init(ServletConfig servletConfig) {
-        LogManager.getLogger().info("HelloServlet initialized.");
+        LogManager.info("HelloServlet initialized.");
         this.servletConfig = servletConfig;
     }
 
@@ -46,6 +48,6 @@ public class HelloServlet implements Servlet {
 
     @Override
     public void destroy() {
-        LogManager.getLogger().info("HelloServlet destroyed.");
+        LogManager.info("HelloServlet destroyed.");
     }
 }

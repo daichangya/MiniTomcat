@@ -31,6 +31,6 @@ public class HttpServletResponseImplTest {
         OutputStream responseBody = response.getOutputStream();
         responseBody.write("<html><body><h1>Hello, World!</h1></body></html>".getBytes());
 
-        LogManager.getLogger().info(outputStream.toString());
+        LogManager.info(outputStream.toString());
     }
 }

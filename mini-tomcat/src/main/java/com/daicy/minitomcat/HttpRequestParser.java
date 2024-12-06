@@ -1,5 +1,6 @@
 package com.daicy.minitomcat;
 
+import com.daicy.minitomcat.log.LogManager;
 import com.daicy.minitomcat.servlet.Request;
 
 import javax.servlet.http.Cookie;
@@ -14,7 +15,7 @@ public class HttpRequestParser {
         // 读取请求行
         String requestLine = reader.readLine();
         if (requestLine == null || requestLine.isEmpty()) {
-            LogManager.getLogger().info(reader.readLine());
+            LogManager.info(reader.readLine());
             throw new IOException("Empty request line");
         }
 
@@ -57,13 +58,13 @@ public class HttpRequestParser {
         Request request = parseHttpRequest(inputStream);
 
         // 输出解析后的信息
-        LogManager.getLogger().info("Method: " + request.getMethod());
-        LogManager.getLogger().info("Request URI: " + request.getRequestURI());
-        LogManager.getLogger().info("Query String: " + request.getQueryString());
-        LogManager.getLogger().info("Session ID: " + request.getSession().getId());
-        LogManager.getLogger().info("Cookies:");
+        LogManager.info("Method: " + request.getMethod());
+        LogManager.info("Request URI: " + request.getRequestURI());
+        LogManager.info("Query String: " + request.getQueryString());
+        LogManager.info("Session ID: " + request.getSession().getId());
+        LogManager.info("Cookies:");
         for (Cookie cookie : request.getCookies()) {
-            LogManager.getLogger().info("  " + cookie.getName() + "=" + cookie.getValue());
+            LogManager.info("  " + cookie.getName() + "=" + cookie.getValue());
         }
     }
 }
