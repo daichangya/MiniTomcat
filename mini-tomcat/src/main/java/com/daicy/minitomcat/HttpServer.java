@@ -61,7 +61,7 @@ public class HttpServer {
 
     public static void stop() {
         try {
-            LogManager.info("Server stopping...");
+            LogManager.debug("Server stopping...");
             context.stop();
             servletContextListenerManager.notifyContextDestroyed(new ServletContextEvent(servletContext));
             SessionManager.removeSession();
