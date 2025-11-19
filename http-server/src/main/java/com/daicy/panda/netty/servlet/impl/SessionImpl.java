@@ -23,10 +23,13 @@ public class SessionImpl implements HttpSession {
 
     private Map<String, Object> attributes;
 
+    private boolean isNew = true;
+
     public SessionImpl(String id) {
         this.id = id;
         this.creationTime = System.currentTimeMillis();
         this.lastAccessedTime = this.creationTime;
+        this.isNew = true;
     }
 
     @Override
@@ -140,11 +143,24 @@ public class SessionImpl implements HttpSession {
 
     public void touch() {
         this.lastAccessedTime = System.currentTimeMillis();
+        this.isNew = false;
     }
 
     @Override
     public boolean isNew() {
-        throw new IllegalStateException("Method 'isNew' not yet implemented!");
+        return isNew;
+    }
+
+    /**
+     * 检查Session是否过期
+     * @return true if expired, false otherwise
+     */
+    public boolean isExpired() {
+        if (maxInactiveInterval < 0) {
+            return false; // 永不过期
+        }
+        long currentMillis = System.currentTimeMillis();
+        return (currentMillis - lastAccessedTime) > (maxInactiveInterval * 1000L);
     }
 
 }

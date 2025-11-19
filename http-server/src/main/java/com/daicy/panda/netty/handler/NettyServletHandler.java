@@ -1,5 +1,8 @@
 package com.daicy.panda.netty.handler;
 
+import com.daicy.panda.netty.PandaServerBuilder;
+import com.daicy.panda.netty.TracingThreadPoolExecutor;
+import com.daicy.panda.netty.security.SecurityHeadersFilter;
 import com.daicy.panda.netty.servlet.impl.*;
 import com.daicy.panda.netty.servlet.impl.filter.FilterChainFactory;
 import com.daicy.panda.netty.servlet.impl.filter.FilterChainImpl;
@@ -9,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 
 import javax.servlet.Servlet;
+import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
@@ -27,38 +31,51 @@ public class NettyServletHandler {
     public static void handleRequest(ServletRequest servletRequest, ServletResponse servletResponse) {
         ServletRequestImpl servletRequestImpl = (ServletRequestImpl) servletRequest;
         ServletResponseImpl servletResponseImpl = (ServletResponseImpl) servletResponse;
-        try {
-            handleRequest0(servletRequestImpl, servletResponseImpl);
-        } finally {
-
+        
+        // 获取线程池执行器和配置
+        PandaServerBuilder builder = ServletContextImpl.get().getPandaServerBuilder();
+        TracingThreadPoolExecutor asyncExecutor = builder != null ? builder.executor() : null;
+        boolean useThreadPool = builder != null ? builder.isUseThreadPool() : false;
+        
+        if (!useThreadPool || asyncExecutor == null) {
+            // 如果没有线程池，直接在IO线程执行（不推荐，但保持兼容性）
+            try {
+                handleRequest0(servletRequestImpl, servletResponseImpl);
+            } catch (Throwable t) {
+                ExceptionHandler.handleException(
+                        servletRequestImpl.getChannelHandlerContext(),
+                        servletRequestImpl.getOriginalRequest(),
+                        servletResponseImpl,
+                        t,
+                        servletRequestImpl.isKeepAlive());
+            }
+        } else {
+            // 使用线程池执行业务逻辑，避免阻塞Netty IO线程
+            asyncExecutor.execute(() -> {
+                try {
+                    handleRequest0(servletRequestImpl, servletResponseImpl);
+                } catch (Throwable t) {
+                    ExceptionHandler.handleException(
+                            servletRequestImpl.getChannelHandlerContext(),
+                            servletRequestImpl.getOriginalRequest(),
+                            servletResponseImpl,
+                            t,
+                            servletRequestImpl.isKeepAlive());
+                }
+            });
         }
-//        TracingThreadPoolExecutor asyncExecutor = ServletContextImpl.get().getPandaServerBuilder().executor();
-//        if (asyncExecutor == null) {
-//            handleRequest0(servletRequest, servletResponse);
-//            return;
-//        }
-//
-//        asyncExecutor.execute(() -> {
-//            handleRequest0(servletRequest, servletResponse);
-//        });
     }
 
-    public static void handleRequest0(ServletRequestImpl servletRequestImpl, ServletResponseImpl servletResponseImpl) {
-        try {
-            RequestDispatcherImpl dispatcher = (RequestDispatcherImpl) ServletContextImpl.get().getRequestDispatcher(servletRequestImpl.getRequestURI());
-            if (dispatcher == null) {
-                servletResponseImpl.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                return;
-            }
-            dispatcher.dispatch(servletRequestImpl, servletResponseImpl);
-//            Servlet servlet = ServletContextImpl.get().getServlet(DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME);
-//            FilterChainImpl chain = FilterChainFactory.createFilterChain(servletRequestImpl, servlet);
-//            chain.doFilter(servletRequest, servletResponse);
-//            if (servletResponseImpl.getStatus() == HttpServletResponse.SC_OK) {
-//                servlet.service(servletRequest, servletResponse);
-//            }
-        } catch (Exception e) {
-            log.error("controller invoke uri:{}", servletRequestImpl.getRequestURI(), e);
+    public static void handleRequest0(ServletRequestImpl servletRequestImpl, ServletResponseImpl servletResponseImpl) 
+            throws ServletException, IOException {
+        // 添加安全响应头
+        SecurityHeadersFilter.addSecurityHeaders(servletRequestImpl, servletResponseImpl);
+        
+        RequestDispatcherImpl dispatcher = (RequestDispatcherImpl) ServletContextImpl.get().getRequestDispatcher(servletRequestImpl.getRequestURI());
+        if (dispatcher == null) {
+            servletResponseImpl.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
         }
+        dispatcher.dispatch(servletRequestImpl, servletResponseImpl);
     }
 }

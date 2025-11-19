@@ -36,7 +36,7 @@ public class FilterChainFactory {
         // Create and initialize a filter chain object
         FilterChainImpl filterChain = new FilterChainImpl();
 
-//        filterChain.setServlet(servlet);
+        filterChain.setServlet(servlet);
 
         // Acquire the filter mappings for this Context
         List<FilterMap> filterMapList = ServletContextImpl.get().getContext().getFilterMapList();

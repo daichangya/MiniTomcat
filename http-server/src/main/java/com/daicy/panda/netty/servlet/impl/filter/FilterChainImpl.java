@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class FilterChainImpl implements FilterChain {
 
-//    private Servlet servlet;
+    private Servlet servlet;
 
     private LinkedList<Filter> filters = Lists.newLinkedList();
 
@@ -25,6 +25,9 @@ public class FilterChainImpl implements FilterChain {
         Filter filter = filters.poll();
         if (null != filter) {
             filter.doFilter(request, response, this);
+        } else if (servlet != null) {
+            // Filter执行完毕后调用Servlet
+            servlet.service(request, response);
         }
     }
 
@@ -32,7 +35,7 @@ public class FilterChainImpl implements FilterChain {
         filters.add(filter);
     }
 
-//    public void setServlet(Servlet servlet) {
-//        this.servlet = servlet;
-//    }
+    public void setServlet(Servlet servlet) {
+        this.servlet = servlet;
+    }
 }

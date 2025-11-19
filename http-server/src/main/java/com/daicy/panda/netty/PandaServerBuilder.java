@@ -46,6 +46,10 @@ public class PandaServerBuilder {
 
     private String contextPath = StringUtils.EMPTY;
 
+    private boolean enableCompression = true; // 是否启用响应压缩
+
+    private boolean useThreadPool = true; // 是否使用线程池处理业务逻辑
+
     private TracingThreadPoolExecutor executor;
 
     private int port;
@@ -140,6 +144,24 @@ public class PandaServerBuilder {
     public PandaServerBuilder contextPath(String contextPath) {
         this.contextPath = contextPath;
         return this;
+    }
+
+    public PandaServerBuilder enableCompression(boolean enableCompression) {
+        this.enableCompression = enableCompression;
+        return this;
+    }
+
+    public PandaServerBuilder useThreadPool(boolean useThreadPool) {
+        this.useThreadPool = useThreadPool;
+        return this;
+    }
+
+    public boolean isEnableCompression() {
+        return enableCompression;
+    }
+
+    public boolean isUseThreadPool() {
+        return useThreadPool;
     }
 
     public PandaServerBuilder sssionCookieName(String sssionCookieName) {

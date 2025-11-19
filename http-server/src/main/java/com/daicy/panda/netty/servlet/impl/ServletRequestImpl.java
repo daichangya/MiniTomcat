@@ -671,4 +671,28 @@ public class ServletRequestImpl implements HttpServletRequest {
         throw new IllegalStateException(
                 "Method 'upgrade' not yet implemented!");
     }
+
+    /**
+     * 获取ChannelHandlerContext（内部使用）
+     */
+    public ChannelHandlerContext getChannelHandlerContext() {
+        return ctx;
+    }
+
+    /**
+     * 获取原始HttpRequest（内部使用）
+     */
+    public HttpRequest getOriginalRequest() {
+        return originalRequest;
+    }
+
+    /**
+     * 检查是否为Keep-Alive连接
+     */
+    public boolean isKeepAlive() {
+        if (originalRequest instanceof FullHttpRequest) {
+            return HttpUtil.isKeepAlive((FullHttpRequest) originalRequest);
+        }
+        return false;
+    }
 }

@@ -1,5 +1,9 @@
 package com.daicy.panda.netty.servlet.impl;
 
+import com.daicy.panda.netty.security.SecurityConfig;
+import com.daicy.panda.netty.servlet.SessionThreadLocal;
+import com.daicy.panda.netty.servlet.impl.ServletContextImpl;
+import com.daicy.panda.netty.servlet.impl.SessionImpl;
 import com.google.common.collect.Lists;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -40,6 +44,8 @@ public class ServletResponseImpl implements HttpServletResponse {
 
     private boolean responseCommited = false;
 
+    private boolean isSecure = false;
+
     public ServletResponseImpl(ChannelHandlerContext ctx, DefaultHttpResponse originalResponse) {
         this.ctx = ctx;
         this.originalResponse = originalResponse;
@@ -49,8 +55,60 @@ public class ServletResponseImpl implements HttpServletResponse {
 
     @Override
     public void addCookie(Cookie cookie) {
-        String result = ServerCookieEncoder.LAX.encode(new DefaultCookie(cookie.getName(), cookie.getValue()));
-        this.originalResponse.headers().add(HttpHeaderNames.SET_COOKIE, result);
+        // 创建Netty Cookie对象
+        DefaultCookie nettyCookie = new DefaultCookie(cookie.getName(), cookie.getValue());
+        
+        // 设置基本属性
+        if (cookie.getDomain() != null) {
+            nettyCookie.setDomain(cookie.getDomain());
+        }
+        if (cookie.getPath() != null) {
+            nettyCookie.setPath(cookie.getPath());
+        }
+        if (cookie.getMaxAge() >= 0) {
+            nettyCookie.setMaxAge(cookie.getMaxAge());
+        }
+        nettyCookie.setSecure(cookie.getSecure());
+        
+        // 应用安全配置
+        SecurityConfig securityConfig = SecurityConfig.getInstance();
+        
+        // HttpOnly属性（如果Cookie未设置，使用安全配置）
+        if (cookie.getComment() == null || !cookie.getComment().contains("HttpOnly")) {
+            // Netty的DefaultCookie没有直接的HttpOnly设置方法
+            // 需要在编码时处理
+        }
+        
+        // 编码Cookie
+        String cookieString = ServerCookieEncoder.STRICT.encode(nettyCookie);
+        
+        // 手动添加HttpOnly属性（如果启用）
+        // 对于Session Cookie或配置为HttpOnly的Cookie
+        boolean isSessionCookie = cookie.getName().equals(securityConfig.getSessionCookieName());
+        if (securityConfig.isSessionCookieHttpOnly() && isSessionCookie) {
+            if (!cookieString.contains("HttpOnly")) {
+                cookieString += "; HttpOnly";
+            }
+        }
+        
+        // 添加SameSite属性（如果配置，仅对Session Cookie）
+        if (isSessionCookie && securityConfig.getSessionCookieSameSite() != null) {
+            if (!cookieString.contains("SameSite")) {
+                cookieString += "; SameSite=" + securityConfig.getSessionCookieSameSite();
+            }
+        }
+        
+        // 根据请求是否HTTPS设置Secure属性（仅对Session Cookie）
+        if (isSessionCookie) {
+            // 使用响应中存储的isSecure标志
+            if (securityConfig.shouldSessionCookieBeSecure(this.isSecure || cookie.getSecure())) {
+                if (!cookieString.contains("Secure")) {
+                    cookieString += "; Secure";
+                }
+            }
+        }
+        
+        this.originalResponse.headers().add(HttpHeaderNames.SET_COOKIE, cookieString);
     }
 
     @Override
@@ -260,6 +318,9 @@ public class ServletResponseImpl implements HttpServletResponse {
 
 
     public void close() {
+        // 在响应提交前，自动添加Session Cookie（如果Session是新创建的）
+        addSessionCookieIfNeeded();
+        
         this.responseCommited = true;
         servletOutputStream.close();
         boolean isKeepAlive = HttpUtil.isKeepAlive(originalResponse);
@@ -271,11 +332,47 @@ public class ServletResponseImpl implements HttpServletResponse {
         }
     }
 
+    /**
+     * 如果需要，自动添加Session Cookie
+     * 当Session是新创建时，自动添加Session Cookie到响应中
+     */
+    private void addSessionCookieIfNeeded() {
+        SessionImpl session = SessionThreadLocal.sessionThreadLocal.get();
+        if (session != null && session.isNew()) {
+            // Session是新创建的，需要添加Cookie
+            SecurityConfig securityConfig = SecurityConfig.getInstance();
+            String sessionCookieName = ServletContextImpl.get().getPandaServerBuilder().getSssionCookieName();
+            
+            javax.servlet.http.Cookie sessionCookie = new javax.servlet.http.Cookie(
+                    sessionCookieName, session.getId());
+            sessionCookie.setPath("/");
+            sessionCookie.setMaxAge(-1); // 会话Cookie
+            
+            // 根据请求是否HTTPS设置Secure
+            // 这里需要从请求中获取，暂时通过检查响应头判断
+            // 更好的方式是在创建ServletResponse时传入isSecure标志
+            sessionCookie.setSecure(false); // 将在addCookie中根据配置调整
+            
+            addCookie(sessionCookie);
+        }
+    }
+
     public DefaultHttpResponse getOriginalResponse() {
         return originalResponse;
     }
 
     public ChannelHandlerContext getCtx() {
         return ctx;
+    }
+
+    /**
+     * 设置请求是否使用HTTPS
+     */
+    public void setSecure(boolean secure) {
+        this.isSecure = secure;
+    }
+
+    public boolean isSecure() {
+        return isSecure;
     }
 }

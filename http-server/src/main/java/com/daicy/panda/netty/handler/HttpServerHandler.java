@@ -16,6 +16,7 @@
 package com.daicy.panda.netty.handler;
 
 import com.daicy.panda.netty.PandaStatus;
+import com.daicy.panda.netty.monitoring.AccessLogger;
 import com.daicy.panda.netty.servlet.impl.ServletRequestImpl;
 import com.daicy.panda.netty.servlet.impl.ServletResponseImpl;
 import io.netty.channel.ChannelHandlerContext;
@@ -45,17 +46,8 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         status.totalRequestsIncrement();
-//        if (asyncExecutor == null) {
-//            handleRequest(ctx, msg);
-//            return;
-//        }
-//
-//        asyncExecutor.execute(() -> {
-//            handleRequest(ctx, msg);
-//        });
-//    }
-//
-//    private void handleRequest(ChannelHandlerContext ctx, Object msg) {
+        long startTime = System.currentTimeMillis();
+        
         try {
             if (msg instanceof FullHttpRequest) {
                 FullHttpRequest request = (FullHttpRequest) msg;
@@ -70,8 +62,10 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
                     HttpUtil.setKeepAlive(response, isKeepAlive);
                     servletRequest = new ServletRequestImpl(ctx, request);
                     servletResponse = new ServletResponseImpl(ctx, response);
+                    // 设置请求是否使用HTTPS
+                    servletResponse.setSecure(servletRequest.isSecure());
                     NettyServletHandler.handleRequest(servletRequest, servletResponse);
-                }finally {
+                } finally {
                     try {
                         if(BooleanUtils.isNotTrue(isKeepAlive) && null != servletRequest){
                             servletRequest.getInputStream().close();
@@ -81,6 +75,11 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
                     }
                     if (!servletRequest.isAsyncStarted() && null != servletResponse) {
                         servletResponse.close();
+                        
+                        // 记录访问日志
+                        long duration = System.currentTimeMillis() - startTime;
+                        AccessLogger.logAccess(servletRequest, servletResponse, duration);
+                        AccessLogger.logSlowRequest(servletRequest, servletResponse, duration);
                     }
                 }
             }
@@ -113,7 +112,6 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
-        ctx.close();
+        ExceptionHandler.handleChannelException(ctx, cause);
     }
 }

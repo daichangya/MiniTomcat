@@ -76,6 +76,10 @@ public class AsyncContextImpl implements AsyncContext {
                 try {
                     NettyServletHandler.handleRequest0(servletRequestImpl, servletResponseImpl);
                     complete();
+                } catch (ServletException e) {
+                    throw new RuntimeException(e);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 } finally {
                     if (!servletRequestImpl.isAsyncStarted()) {
                         servletResponseImpl.close();

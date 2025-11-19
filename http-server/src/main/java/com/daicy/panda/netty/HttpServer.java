@@ -16,6 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An HTTP server that sends back the content of the received HTTP request
@@ -34,6 +37,8 @@ public final class HttpServer {
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
 
+    private ScheduledExecutorService sessionCleanupExecutor;
+
     private final CompletableFuture<HttpServer> startFuture = new CompletableFuture<>();
     private final CompletableFuture<HttpServer> shutdownFuture = new CompletableFuture<>();
     private final CompletableFuture<HttpServer> channelsUpFuture = new CompletableFuture<>();
@@ -42,6 +47,10 @@ public final class HttpServer {
 
     public static void main(String[] args) throws Exception {
         HttpServer httpServer = PandaServerBuilder.forPort(PORT).build();
+        
+        // 自动注册健康检查Servlet
+        registerHealthCheckServlet();
+        
 //        httpServer.createConfig();
         httpServer.start()
                 .thenAccept(ws -> {
@@ -56,6 +65,21 @@ public final class HttpServer {
                     return null;
                 });
 
+    }
+
+    /**
+     * 注册健康检查Servlet
+     */
+    private static void registerHealthCheckServlet() {
+        try {
+            com.daicy.panda.netty.monitoring.HealthCheckServlet healthCheckServlet = 
+                    new com.daicy.panda.netty.monitoring.HealthCheckServlet();
+            ServletContextImpl.get().addServlet("healthCheck", healthCheckServlet)
+                    .addMapping("/health/*");
+            log.info("Health check servlet registered at /health/*");
+        } catch (Exception e) {
+            log.error("Failed to register health check servlet", e);
+        }
     }
 
     public HttpServer(PandaServerBuilder builder) {
@@ -157,10 +181,48 @@ public final class HttpServer {
     }
 
     private void started(HttpServer server) {
+        // 启动Session清理定时任务
+        startSessionCleanupTask();
         startFuture.complete(server);
     }
 
+    /**
+     * 启动Session清理定时任务
+     * 每分钟执行一次，清理过期的Session
+     */
+    private void startSessionCleanupTask() {
+        sessionCleanupExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "session-cleanup");
+            t.setDaemon(true);
+            return t;
+        });
+        
+        // 每分钟执行一次Session清理
+        sessionCleanupExecutor.scheduleAtFixedRate(() -> {
+            try {
+                ServletContextImpl.get().getContext().destroyInactiveSessions();
+            } catch (Exception e) {
+                log.error("Error during session cleanup", e);
+            }
+        }, 60, 60, TimeUnit.SECONDS);
+        
+        log.info("Session cleanup task started (runs every 60 seconds)");
+    }
+
     private void shutdown(Throwable cause) {
+        // 停止Session清理任务
+        if (sessionCleanupExecutor != null) {
+            sessionCleanupExecutor.shutdown();
+            try {
+                if (!sessionCleanupExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    sessionCleanupExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                sessionCleanupExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+        
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
         shutdownFuture.complete(this);

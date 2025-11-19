@@ -20,9 +20,25 @@ public class SessionThreadLocal {
     public static SessionImpl get(String requestedSessionId) {
         SessionImpl session = sessionThreadLocal.get();
         if (session != null) {
-            session.touch();
+            // 检查Session是否过期
+            if (session.isExpired()) {
+                ServletContextImpl.get().getContext().destroySession(session.getId());
+                sessionThreadLocal.remove();
+                session = null;
+            } else {
+                session.touch();
+            }
         } else if (StringUtils.isNotEmpty(requestedSessionId)) {
             session = ServletContextImpl.get().getContext().findSession(requestedSessionId);
+            if (session != null) {
+                // 检查Session是否过期
+                if (session.isExpired()) {
+                    ServletContextImpl.get().getContext().destroySession(session.getId());
+                    session = null;
+                } else {
+                    session.touch();
+                }
+            }
         }
         return session;
     }

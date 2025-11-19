@@ -14,6 +14,7 @@ import javax.servlet.*;
 import javax.servlet.annotation.ServletSecurity;
 import javax.servlet.descriptor.JspConfigDescriptor;
 import javax.servlet.http.HttpServlet;
+import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.FileNameMap;
@@ -119,7 +120,28 @@ public class ServletContextImpl implements ServletContext {
 
     @Override
     public Set<String> getResourcePaths(String path) {
-        return null;
+        // 基础实现：尝试从类路径获取资源
+        Set<String> paths = new HashSet<>();
+        try {
+            URL resourceUrl = getResource(path);
+            if (resourceUrl != null && "file".equals(resourceUrl.getProtocol())) {
+                File file = new File(resourceUrl.toURI());
+                if (file.isDirectory()) {
+                    File[] files = file.listFiles();
+                    if (files != null) {
+                        for (File f : files) {
+                            String relativePath = path.endsWith("/") 
+                                    ? path + f.getName() 
+                                    : path + "/" + f.getName();
+                            paths.add(relativePath);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Failed to get resource paths for: " + path, e);
+        }
+        return paths.isEmpty() ? null : paths;
     }
 
     @Override
@@ -138,14 +160,84 @@ public class ServletContextImpl implements ServletContext {
 
     @Override
     public RequestDispatcher getRequestDispatcher(String path) {
+        // 首先尝试精确匹配
         String servletName = servletMappings.get(path);
+        
+        // 如果没有精确匹配，尝试通配符匹配
+        if (servletName == null) {
+            servletName = findMatchingServlet(path);
+        }
+        
+        // 如果还是没有匹配，尝试默认servlet
         if (servletName == null) {
             servletName = servletMappings.get("/");
         }
+        
         if (null == servletName) {
             return null;
         }
         return getNamedDispatcher(servletName);
+    }
+
+    /**
+     * 查找匹配的Servlet（支持通配符模式）
+     * 
+     * @param requestPath 请求路径
+     * @return Servlet名称，如果没有匹配则返回null
+     */
+    private String findMatchingServlet(String requestPath) {
+        if (requestPath == null) {
+            return null;
+        }
+        
+        String bestMatch = null;
+        int bestMatchLength = -1;
+        
+        // 遍历所有servlet映射，查找最佳匹配
+        for (Map.Entry<String, String> entry : servletMappings.entrySet()) {
+            String urlPattern = entry.getKey();
+            
+            // 精确匹配
+            if (urlPattern.equals(requestPath)) {
+                return entry.getValue();
+            }
+            
+            // 路径匹配 ("/.../*")
+            if (urlPattern.equals("/*")) {
+                if (bestMatch == null || bestMatchLength < 0) {
+                    bestMatch = entry.getValue();
+                    bestMatchLength = 0;
+                }
+            } else if (urlPattern.endsWith("/*")) {
+                String prefix = urlPattern.substring(0, urlPattern.length() - 2);
+                if (requestPath.startsWith(prefix)) {
+                    if (requestPath.length() == prefix.length() || 
+                        requestPath.charAt(prefix.length()) == '/') {
+                        // 找到匹配，选择最长的前缀
+                        if (bestMatch == null || prefix.length() > bestMatchLength) {
+                            bestMatch = entry.getValue();
+                            bestMatchLength = prefix.length();
+                        }
+                    }
+                }
+            }
+            
+            // 扩展名匹配 ("*.ext")
+            if (urlPattern.startsWith("*.")) {
+                String extension = urlPattern.substring(2);
+                if (requestPath.endsWith("." + extension)) {
+                    int lastSlash = requestPath.lastIndexOf('/');
+                    int lastDot = requestPath.lastIndexOf('.');
+                    if (lastDot > lastSlash && lastDot < requestPath.length() - 1) {
+                        if (bestMatch == null) {
+                            bestMatch = entry.getValue();
+                        }
+                    }
+                }
+            }
+        }
+        
+        return bestMatch;
     }
 
     @Override
@@ -193,14 +285,22 @@ public class ServletContextImpl implements ServletContext {
 
     @Override
     public String getRealPath(String path) {
-        throw new IllegalStateException(
-                "Method 'getRealPath' not yet implemented!");
+        // 基础实现：尝试从类路径或文件系统获取真实路径
+        try {
+            URL resourceUrl = getResource(path);
+            if (resourceUrl != null && "file".equals(resourceUrl.getProtocol())) {
+                File file = new File(resourceUrl.toURI());
+                return file.getAbsolutePath();
+            }
+        } catch (Exception e) {
+            log.debug("Failed to get real path for: " + path, e);
+        }
+        return null;
     }
 
     @Override
     public String getServerInfo() {
-        throw new IllegalStateException(
-                "Method 'getServerInfo' not yet implemented!");
+        return "Panda-Servlet-Container/1.0";
     }
 
     @Override

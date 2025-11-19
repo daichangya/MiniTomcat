@@ -19,6 +19,7 @@ import com.daicy.panda.netty.servlet.impl.ServletContextImpl;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslContext;
@@ -28,9 +29,14 @@ import io.netty.handler.timeout.IdleStateHandler;
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 
     private final SslContext sslCtx;
+    private final boolean enableCompression;
 
     public HttpServerInitializer(SslContext sslCtx) {
         this.sslCtx = sslCtx;
+        // 从ServletContext获取压缩配置
+        this.enableCompression = ServletContextImpl.get().getPandaServerBuilder() != null 
+                ? ServletContextImpl.get().getPandaServerBuilder().isEnableCompression() 
+                : true;
     }
 
     @Override
@@ -46,8 +52,11 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 //        pipeline.addLast(new HttpStaticFileServerHandler());
 
 //        pipeline.addLast(new HttpResponseEncoder());
-        // Remove the following line if you don't want automatic content compression.
-        //pipeline.addLast(new HttpContentCompressor());
+        // 启用响应压缩（Gzip/Deflate）
+        // HttpContentCompressor会自动检测Accept-Encoding头并压缩响应
+        if (enableCompression) {
+            pipeline.addLast(new HttpContentCompressor());
+        }
         pipeline.addLast(new IdleStateHandler(5, 0, 0));
         pipeline.addLast(new HttpServerHandler());
     }

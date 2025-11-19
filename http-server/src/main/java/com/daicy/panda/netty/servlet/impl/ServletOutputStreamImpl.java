@@ -16,8 +16,11 @@
 
 package com.daicy.panda.netty.servlet.impl;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
@@ -40,7 +43,12 @@ public class ServletOutputStreamImpl extends ServletOutputStream {
 
     public ServletOutputStreamImpl(ServletResponseImpl response) {
         this.servletResponse = response;
-        this.out = new ByteBufOutputStream(Unpooled.buffer(0));
+        // 使用Channel的ByteBufAllocator，支持池化ByteBuf
+        ChannelHandlerContext ctx = response.getCtx();
+        ByteBufAllocator allocator = ctx != null ? ctx.alloc() : UnpooledByteBufAllocator.DEFAULT;
+        // 初始容量设置为4KB，使用池化分配器
+        ByteBuf buffer = allocator.buffer(4096);
+        this.out = new ByteBufOutputStream(buffer);
     }
 
     @Override
