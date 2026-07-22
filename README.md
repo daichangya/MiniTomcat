@@ -1,9 +1,9 @@
 ## 微信公众号
 
 扫码关注微信公众号，Java码界探秘。
-![Java码界探秘](http://images.jsdiff.com/qrcode_for_gh_1e2587cc42b1_258_1587996055777.jpg)
+![Java码界探秘](https://mdanimage.oss-cn-shenzhen.aliyuncs.com/qrcode_for_gh_1e2587cc42b1_258_1587996055777.jpg)
 
-[https://jsdiff.com/](https://jsdiff.com/)
+[https://tushu.info/](https://tushu.info/)
 
 # MiniTomcat (https://github.com/daichangya/miniTomcat)
 
